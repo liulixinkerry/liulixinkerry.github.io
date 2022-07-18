@@ -1,0 +1,207 @@
+body {
+    font-family: "Segoe UI", "Lucida Grande", Helvetica, Arial, "Microsoft YaHei", "Droid Sans", "wenquanyi micro hei", "Hiragino Sans GB", "Hiragino Sans GB W3", sans-serif;
+    color: #666;
+    background-color: #f8f8f8;
+}
+
+
+p {
+    margin: 0 0 20px;
+    font-size: 16px;
+    line-height: 1.6em;
+}
+
+a {
+    text-decoration: none;
+    color: rgb(49, 138, 190);
+    -webkit-transition: all .2s ease-in-out;
+    -moz-transition: all .2s ease-in-out;
+    -o-transition: all .2s ease-in-out;
+    transition: all .2s ease-in-out;
+}
+
+a:hover,
+a:focus {
+    text-decoration: none;
+    color: #176e61;
+}
+
+hr {
+    height: 1px;
+    background-color: rgb(196, 196, 196);
+    border: none;
+}
+
+#lists ul li {
+    padding: 5px;
+}
+
+#lists {
+    padding-top: 15px;
+    background-color: #f8f8f8;
+}
+
+#lists h2 {
+    line-height: 1em;
+}
+
+#lists h3 {
+    text-indent: 0em;
+}
+
+#lists p {
+    padding: 0px 30px;
+    text-indent: 0px;
+}
+
+.TheLast {
+    padding-bottom: 1em;
+}
+
+
+.page-container {
+    max-width: 900px;
+    margin: 10px auto;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 6px 0;
+}
+
+footer p {
+    color: #f8f8f8;
+}
+
+footer p a {
+    color: #f8f8f8;
+    -webkit-transition: all .2s ease-in-out;
+    -moz-transition: all .2s ease-in-out;
+    -o-transition: all .2s ease-in-out;
+    transition: all .2s ease-in-out;
+}
+
+footer p a:hover,
+footer p a:focus {
+    text-decoration: none;
+    color: #176e61;
+}
+
+.littleicon {
+    height: auto;
+    width: 20px;
+}
+
+
+/*Custom*/
+
+#Photo {
+    float: left;
+    padding: 2em 2em;
+    border: 1px;
+}
+
+#Photo img {
+    height: 280px;
+    width: auto
+}
+
+#information {
+    padding: 2em 2em;
+}
+
+#information p {
+    margin: 0px 0px;
+    padding: 0px 0em;
+    text-indent: 0em;
+}
+
+#media {
+    overflow: hidden;
+}
+
+.subTitle {
+    font-size: 25px;
+}
+
+
+#mainInfo {
+    margin: 20px;
+    display: block;
+}
+
+#llxName {
+    font-size: 40px;
+    font-weight: bold;
+}
+
+#llxClass {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+#llxIconFont {
+    font-size: 20px;
+}
+
+#llxIcon {
+    color: #666;
+}
+
+#cntContainer {
+    text-align: center;
+}
+
+.PubGroupType {
+    font-size: 18px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    margin-left: 2px;
+}
+
+.OnePubBox {
+    /* margin-top: 20px; */
+    margin-bottom: 10px;
+}
+
+.PubTitle {
+    margin-bottom: 2px;
+    font-size: 17px
+}
+
+
+.PubInfo {
+    margin-bottom: 10px;
+}
+
+.PubAuthor {
+    margin: 0px
+}
+
+.PubPress {
+    margin: 0px;
+}
+
+.PubSrc {
+    margin: 0px;
+}
+
+
+
+
+.honorsContent ul li {
+    font-size: 16px;
+}
+
+
+#highlight {
+    color: rgb(219, 18, 18);
+}
+
+
+@media screen and (max-width: 720px) {
+    #Photo {
+        float: none;
+    }
+}
