@@ -199,6 +199,9 @@ footer p a:focus {
     color: rgb(219, 18, 18);
 }
 
+/* #cntContainer {
+    display: none;
+} */
 
 @media screen and (max-width: 720px) {
     #Photo {
