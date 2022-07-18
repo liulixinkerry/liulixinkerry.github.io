@@ -187,13 +187,15 @@ footer p a:focus {
     margin: 0px;
 }
 
-
-
-
 .honorsContent ul li {
     font-size: 16px;
 }
 
+.clustrmapsClass {
+    text-align: center;
+    max-width: 250px;
+    margin: 0 auto;
+}
 
 #highlight {
     color: rgb(219, 18, 18);
