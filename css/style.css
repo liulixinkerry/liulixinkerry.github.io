@@ -1,29 +1,29 @@
 body {
     font-family: "Segoe UI", "Lucida Grande", Helvetica, Arial, "Microsoft YaHei", "Droid Sans", "wenquanyi micro hei", "Hiragino Sans GB", "Hiragino Sans GB W3", sans-serif;
     color: #666;
-    background-color: #f8f8f8;
 }
 
 
 p {
     margin: 0 0 20px;
-    font-size: 16px;
     line-height: 1.6em;
 }
 
 a {
     text-decoration: none;
-    color: rgb(49, 138, 190);
+    color: #1f4e9b;
     -webkit-transition: all .2s ease-in-out;
     -moz-transition: all .2s ease-in-out;
     -o-transition: all .2s ease-in-out;
     transition: all .2s ease-in-out;
 }
 
-a:hover,
-a:focus {
-    text-decoration: none;
-    color: #176e61;
+a:hover {
+    text-decoration: underline;
+}
+  
+a:active {
+    text-decoration: underline;
 }
 
 hr {
@@ -33,12 +33,7 @@ hr {
 }
 
 #lists ul li {
-    padding: 5px;
-}
-
-#lists {
-    padding-top: 15px;
-    background-color: #f8f8f8;
+    padding: 1px;
 }
 
 #lists h2 {
@@ -70,12 +65,8 @@ footer {
     padding: 6px 0;
 }
 
-footer p {
-    color: #f8f8f8;
-}
 
 footer p a {
-    color: #f8f8f8;
     -webkit-transition: all .2s ease-in-out;
     -moz-transition: all .2s ease-in-out;
     -o-transition: all .2s ease-in-out;
@@ -103,7 +94,7 @@ footer p a:focus {
 }
 
 #Photo img {
-    height: 280px;
+    height: 260px;
     width: auto
 }
 
@@ -122,7 +113,7 @@ footer p a:focus {
 }
 
 .subTitle {
-    font-size: 25px;
+    font-size: 20px;
 }
 
 
@@ -132,17 +123,8 @@ footer p a:focus {
 }
 
 #llxName {
-    font-size: 40px;
+    font-size: 30px;
     font-weight: bold;
-}
-
-#llxClass {
-    font-size: 20px;
-    font-weight: bold;
-}
-
-#llxIconFont {
-    font-size: 20px;
 }
 
 #llxIcon {
@@ -154,7 +136,6 @@ footer p a:focus {
 }
 
 .PubGroupType {
-    font-size: 18px;
     margin-top: 10px;
     margin-bottom: 10px;
     margin-left: 2px;
@@ -166,8 +147,7 @@ footer p a:focus {
 }
 
 .PubTitle {
-    margin-bottom: 2px;
-    font-size: 17px
+    margin-bottom: 2px
 }
 
 
@@ -187,9 +167,6 @@ footer p a:focus {
     margin: 0px;
 }
 
-.honorsContent ul li {
-    font-size: 16px;
-}
 
 .clustrmapsClass {
     text-align: center;
