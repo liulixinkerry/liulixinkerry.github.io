@@ -1,0 +1,10 @@
+(() => {
+  let theme = null;
+  try {
+    theme = localStorage.getItem('wamjet-theme');
+  } catch (error) {}
+  if (theme !== 'light' && theme !== 'dark')
+    theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.dataset.theme = theme;
+  document.documentElement.classList.add('js');
+})();

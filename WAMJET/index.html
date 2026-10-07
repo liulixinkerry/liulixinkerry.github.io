@@ -1,0 +1,1958 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="WAMJET equips coding agents with reusable guidance and tools to accelerate World Action Models: faster inference for every WAM tested across three coding agents and two GPU architectures, including a 9.95× lossless speedup on LingBot-VA."
+    />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#111417" media="(prefers-color-scheme: dark)" />
+    <script src="theme.js"></script>
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="WAMJET: A Harness for World Action Model Acceleration" />
+    <meta
+      property="og:description"
+      content="Bottleneck-driven optimization. Faster robot policies. A 9.95× lossless speedup on LingBot-VA."
+    />
+    <meta name="twitter:card" content="summary" />
+    <title>WAMJET: A Harness for World Action Model Acceleration</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+
+    <header class="topbar" id="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="#top" aria-label="WAMJET, back to top"
+          ><img
+            class="light-only"
+            src="assets/wamjet-title.png"
+            width="760"
+            height="178"
+            alt="WAMJET" /><img
+            class="dark-only"
+            src="assets/wamjet-title-dark.png"
+            width="760"
+            height="178"
+            alt="WAMJET"
+        /></a>
+        <nav class="topnav" aria-label="Main">
+          <a href="#workflow">Method</a>
+          <a href="#lossless">Results</a>
+          <a href="#cite">Cite</a>
+          <button
+            class="theme-toggle"
+            type="button"
+            id="theme-toggle"
+            aria-label="Switch to dark mode"
+            hidden
+          >
+            <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true">
+              <use href="assets/icons.svg#i-moon" />
+            </svg>
+            <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true">
+              <use href="assets/icons.svg#i-sun" />
+            </svg>
+          </button>
+          <a
+            class="btn small"
+            href="https://arxiv.org/abs/2610.03797"
+            target="_blank"
+            rel="noopener noreferrer"
+            ><svg aria-hidden="true"><use href="assets/icons.svg#i-paper" /></svg>Paper</a
+          >
+          <a
+            class="btn small dark"
+            href="https://github.com/liulixinkerry/WAMJET"
+            target="_blank"
+            rel="noopener noreferrer"
+            ><svg aria-hidden="true"><use href="assets/icons.svg#i-code" /></svg>Code</a
+          >
+        </nav>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside class="toc" aria-label="Contents">
+        <p>Contents</p>
+        <ol>
+          <li><a href="#why">Why a harness</a></li>
+          <li><a href="#workflow">The optimization loop</a></li>
+          <li><a href="#latency">Where latency hides</a></li>
+          <li><a href="#lossless">Lossless speedups</a></li>
+          <li><a href="#hardware">Across GPU architectures</a></li>
+          <li><a href="#openwam">An optimized SOTA WAM</a></li>
+          <li><a href="#search">Optimization progress</a></li>
+          <li><a href="#try">Try it</a></li>
+          <li><a href="#cite">Citation</a></li>
+        </ol>
+      </aside>
+
+      <main id="main">
+        <header class="article-head wide" id="top">
+          <h1>
+            <span class="title-logo light-only"
+              ><span class="logo-mark-wrap" aria-hidden="true"
+                ><img
+                  class="logo-mark"
+                  src="assets/wamjet-title.png"
+                  width="760"
+                  height="178"
+                  alt="" /></span
+              ><img
+                class="logo-word"
+                src="assets/wamjet-title.png"
+                width="760"
+                height="178"
+                alt="WAMJET"
+            /></span>
+            <span class="title-logo dark-only"
+              ><span class="logo-mark-wrap" aria-hidden="true"
+                ><img
+                  class="logo-mark"
+                  src="assets/wamjet-title-dark.png"
+                  width="760"
+                  height="178"
+                  alt="" /></span
+              ><img
+                class="logo-word"
+                src="assets/wamjet-title-dark.png"
+                width="760"
+                height="178"
+                alt="WAMJET" /></span
+            ><span class="title-text">A Harness for World Action Model Acceleration</span>
+          </h1>
+          <p class="tagline">
+            Equipping coding agents to develop acceleration strategies tailored to different WAMs
+            and GPU architectures.
+          </p>
+          <p class="authors">
+            <span class="au"><a href="https://clthegoat.github.io/">Le Chen</a><sup>1</sup>,</span>
+            <span class="au"
+              ><a href="https://liulixinkerry.github.io/">Lixin Liu</a><sup>2,†</sup>,</span
+            >
+            <span class="au"
+              ><a href="https://ei.is.mpg.de/person/jschneider">Jan Schneider</a><sup>1</sup>,</span
+            >
+            <span class="au"
+              ><a href="https://is.mpg.de/ei/person/zqiu">Zeju Qiu</a><sup>1</sup>,</span
+            >
+            <span class="au"
+              ><a href="https://is.mpg.de/ei/person/sguist">Simon Guist</a><sup>1</sup>,</span
+            >
+            <span class="au"
+              ><a href="https://is.mpg.de/ei/person/bs">Bernhard Schölkopf</a><sup>1</sup>,</span
+            >
+            <span class="au"
+              ><a href="https://ei.is.mpg.de/person/dbuechler">Dieter Büchler</a
+              ><sup>1,3</sup></span
+            >
+          </p>
+          <p class="affils">
+            <span><sup>1</sup>Max Planck Institute for Intelligent Systems</span>
+            <span><sup>2</sup>The Chinese University of Hong Kong</span>
+            <span><sup>3</sup>Johannes Kepler University Linz</span>
+          </p>
+          <p class="affils corresponding">
+            <span><sup>†</sup>Corresponding author</span>
+          </p>
+          <div class="actions">
+            <a
+              class="btn dark"
+              href="https://arxiv.org/abs/2610.03797"
+              target="_blank"
+              rel="noopener noreferrer"
+              ><svg aria-hidden="true"><use href="assets/icons.svg#i-paper" /></svg>Paper</a
+            >
+            <a
+              class="btn"
+              href="https://github.com/liulixinkerry/WAMJET"
+              target="_blank"
+              rel="noopener noreferrer"
+              ><svg aria-hidden="true"><use href="assets/icons.svg#i-code" /></svg>Code</a
+            >
+            <a class="btn" href="#cite"
+              ><svg aria-hidden="true"><use href="assets/icons.svg#i-quote" /></svg>BibTeX</a
+            >
+          </div>
+        </header>
+
+        <section class="summary" id="abstract" aria-label="Summary">
+          <ol class="stepper">
+            <li class="step bottleneck">
+              <span class="step-label">The bottleneck</span>
+              World Action Models (WAMs) leverage pretrained video foundation models for robot
+              manipulation, but their large backbones and video-action co-prediction are expensive.
+              Although existing acceleration techniques offer many ways to reduce this cost,
+              selecting and composing them requires substantial engineering for each model and
+              hardware platform.
+            </li>
+            <li class="step harness">
+              <span class="step-label">The harness</span>
+              We present <strong>WAMJET</strong>, an agentic harness that accelerates WAM inference
+              by equipping coding agents with reusable optimization guidance and measurement and
+              validation tools. The agent profiles inference, modifies targeted code, validates
+              effects, and iteratively refines the acceleration stack as bottlenecks shift, while
+              preserving action quality.
+            </li>
+            <li class="step speedup">
+              <span class="step-label">The speedup</span>
+              Across six WAMs, three coding agents, and two GPU architectures, WAMJET speeds up
+              every WAM we tested, including a
+              <strong>9.95×</strong> lossless speedup on LingBot-VA over its upstream
+              implementation. Approximation and hardware-aware optimization yield additional latency
+              reductions, with comparable success rates.
+            </li>
+          </ol>
+        </section>
+
+        <noscript>
+          <p class="noscript">
+            The animations, charts, and latency explorer on this page need JavaScript. The text,
+            tables, and the paper hold every result.
+          </p>
+        </noscript>
+
+        <section id="why" aria-labelledby="why-title">
+          <h2 id="why-title">Hand-tuning every WAM does not scale</h2>
+          <p>
+            Accelerating WAM inference is not a one-time optimization. It requires a recipe that
+            composes techniques for a specific model, hardware platform, and task, and the best recipe
+            for one WAM may not transfer directly to another.
+          </p>
+          <p>
+            Manual optimization requires coordination across kernel experts, model authors, and
+            robotics engineers, and can take days to weeks for each model-GPU pair. A coding agent
+            alone may stop at generic fixes, such as prompt caching or CUDA graphs, leaving deeper
+            optimization opportunities unexplored.
+          </p>
+          <figure class="wide" id="mot-figure" aria-labelledby="mot-caption">
+            <div class="fig-img mot" id="mot">
+              <div class="scroll-x">
+                <svg
+                  class="mot-svg"
+                  viewBox="0 0 960 596"
+                  role="img"
+                  aria-label="Manual optimization coordinates domain experts. A coding agent alone may stop at generic optimizations. WAMJET equips the agent with reusable guidance and tools tailored to WAMs and GPU architectures."
+                >
+                  <defs>
+                    <marker
+                      id="m-arrow"
+                      viewBox="0 0 8 8"
+                      refX="7"
+                      refY="4"
+                      markerWidth="6"
+                      markerHeight="6"
+                      orient="auto-start-reverse"
+                    >
+                      <path d="M0 0L8 4L0 8Z" fill="#6f7d8c" />
+                    </marker>
+                    <marker
+                      id="m-arrow-o"
+                      viewBox="0 0 8 8"
+                      refX="7"
+                      refY="4"
+                      markerWidth="6"
+                      markerHeight="6"
+                      orient="auto-start-reverse"
+                    >
+                      <path d="M0 0L8 4L0 8Z" fill="#b8692a" />
+                    </marker>
+                    <symbol id="m-person" viewBox="0 0 60 52">
+                      <line x1="0" y1="50" x2="60" y2="50" stroke="#b8c1cb" stroke-width="2" />
+                      <rect x="9" y="27" width="28" height="22" rx="8" fill="#2b7f93" />
+                      <circle
+                        cx="23"
+                        cy="17"
+                        r="9"
+                        fill="#f1d2b5"
+                        stroke="#34404f"
+                        stroke-width="1"
+                      />
+                      <path d="M13.6 16 A9.4 9.4 0 0 1 32.4 16 Q23 11.5 13.6 16Z" fill="#34404f" />
+                      <circle
+                        cx="19.6"
+                        cy="18.6"
+                        r="2.4"
+                        fill="none"
+                        stroke="#34404f"
+                        stroke-width="1"
+                      />
+                      <circle
+                        cx="26.4"
+                        cy="18.6"
+                        r="2.4"
+                        fill="none"
+                        stroke="#34404f"
+                        stroke-width="1"
+                      />
+                      <rect x="30" y="31" width="24" height="15" rx="2" fill="#7d8a9a" />
+                      <rect x="26" y="45" width="32" height="3" rx="1" fill="#9aa6b3" />
+                    </symbol>
+                    <symbol id="m-chip" viewBox="0 0 20 20">
+                      <rect
+                        x="4"
+                        y="4"
+                        width="12"
+                        height="12"
+                        rx="2"
+                        fill="none"
+                        stroke="#0f7f6f"
+                        stroke-width="1.6"
+                      />
+                      <rect x="7.2" y="7.2" width="5.6" height="5.6" fill="#0f7f6f" />
+                      <path
+                        d="M7.5 1v3M10 1v3M12.5 1v3M7.5 16v3M10 16v3M12.5 16v3M1 7.5h3M1 10h3M1 12.5h3M16 7.5h3M16 10h3M16 12.5h3"
+                        stroke="#0f7f6f"
+                        stroke-width="1.3"
+                      />
+                    </symbol>
+                    <symbol id="m-wamdot" viewBox="0 0 16 16">
+                      <circle cx="8" cy="8" r="6" fill="none" stroke="#138a74" stroke-width="2" />
+                      <circle cx="8" cy="8" r="3" fill="#138a74" />
+                    </symbol>
+                    <symbol id="m-bot" viewBox="0 0 16 16">
+                      <rect
+                        x="2"
+                        y="4"
+                        width="12"
+                        height="10"
+                        rx="3"
+                        fill="none"
+                        stroke="#7b52c7"
+                        stroke-width="1.6"
+                      />
+                      <line x1="8" y1="1.5" x2="8" y2="4" stroke="#7b52c7" stroke-width="1.6" />
+                      <circle cx="5.6" cy="9" r="1.3" fill="#7b52c7" />
+                      <circle cx="10.4" cy="9" r="1.3" fill="#7b52c7" />
+                    </symbol>
+                  </defs>
+
+                  <!-- dividers -->
+                  <line x1="258" y1="8" x2="258" y2="588" stroke="#d5dbe1" stroke-dasharray="4 5" />
+                  <line x1="518" y1="8" x2="518" y2="588" stroke="#d5dbe1" stroke-dasharray="4 5" />
+
+                  <!-- A: manual optimization (x 8–250) -->
+                  <circle cx="24" cy="24" r="15" fill="#c75762" />
+                  <text
+                    x="24"
+                    y="30"
+                    text-anchor="middle"
+                    fill="#fff"
+                    font-size="16"
+                    font-weight="700"
+                  >
+                    A
+                  </text>
+                  <text x="47" y="30.5" fill="#14263d" font-size="18" font-weight="700">
+                    Manual optimization
+                  </text>
+                  <g class="m-in" style="--t: 0.1s">
+                    <use href="#m-person" x="14" y="50" width="68" height="59" />
+                    <text x="48" y="126" text-anchor="middle" fill="#5b6572" font-size="12">
+                      kernel
+                    </text>
+                    <text x="48" y="141" text-anchor="middle" fill="#5b6572" font-size="12">
+                      expert
+                    </text>
+                  </g>
+                  <g class="m-in" style="--t: 0.25s">
+                    <use href="#m-person" x="99" y="50" width="68" height="59" />
+                    <text x="133" y="126" text-anchor="middle" fill="#5b6572" font-size="12">
+                      model
+                    </text>
+                    <text x="133" y="141" text-anchor="middle" fill="#5b6572" font-size="12">
+                      author
+                    </text>
+                  </g>
+                  <g class="m-in" style="--t: 0.4s">
+                    <use href="#m-person" x="184" y="50" width="68" height="59" />
+                    <text x="218" y="126" text-anchor="middle" fill="#5b6572" font-size="12">
+                      robotics
+                    </text>
+                    <text x="218" y="141" text-anchor="middle" fill="#5b6572" font-size="12">
+                      engineer
+                    </text>
+                  </g>
+                  <g class="m-in" style="--t: 0.55s">
+                    <path
+                      d="M78 84H106"
+                      stroke="#6f7d8c"
+                      stroke-width="1.5"
+                      marker-start="url(#m-arrow)"
+                      marker-end="url(#m-arrow)"
+                    />
+                    <path
+                      d="M163 84H191"
+                      stroke="#6f7d8c"
+                      stroke-width="1.5"
+                      marker-start="url(#m-arrow)"
+                      marker-end="url(#m-arrow)"
+                    />
+                  </g>
+                  <g class="m-in" style="--t: 0.7s">
+                    <rect
+                      x="26"
+                      y="160"
+                      width="214"
+                      height="48"
+                      rx="5"
+                      fill="#f3f5f7"
+                      stroke="#cfd6dd"
+                    />
+                    <text
+                      x="133"
+                      y="180"
+                      text-anchor="middle"
+                      fill="#6b7785"
+                      font-size="13"
+                      font-style="italic"
+                    >
+                      Domain experts
+                    </text>
+                    <text
+                      x="133"
+                      y="198"
+                      text-anchor="middle"
+                      fill="#6b7785"
+                      font-size="13"
+                      font-style="italic"
+                    >
+                      coordinate across groups
+                    </text>
+                  </g>
+                  <g class="m-in" style="--t: 0.9s">
+                    <path
+                      d="M44 208V237"
+                      stroke="#6f7d8c"
+                      stroke-width="1.5"
+                      marker-end="url(#m-arrow)"
+                    />
+                    <text x="55" y="228" fill="#6b7785" font-size="13" font-style="italic">
+                      model × GPU × workload
+                    </text>
+                  </g>
+                  <g class="m-in m-box" data-loop="0" style="--t: 1.05s">
+                    <rect x="26" y="240" width="214" height="62" rx="5" />
+                    <text
+                      x="133"
+                      y="266"
+                      text-anchor="middle"
+                      fill="#14263d"
+                      font-size="14.5"
+                      font-weight="700"
+                    >
+                      Read profiles
+                    </text>
+                    <text x="133" y="287" text-anchor="middle" fill="#5b6572" font-size="13">
+                      Identify the bottleneck
+                    </text>
+                  </g>
+                  <g class="m-in" style="--t: 1.15s">
+                    <path
+                      d="M133 302V327"
+                      stroke="#6f7d8c"
+                      stroke-width="1.5"
+                      marker-end="url(#m-arrow)"
+                    />
+                  </g>
+                  <g class="m-in m-box" data-loop="1" style="--t: 1.25s">
+                    <rect x="26" y="330" width="214" height="62" rx="5" />
+                    <text
+                      x="133"
+                      y="356"
+                      text-anchor="middle"
+                      fill="#14263d"
+                      font-size="14.5"
+                      font-weight="700"
+                    >
+                      Rewrite the code
+                    </text>
+                    <text x="133" y="377" text-anchor="middle" fill="#5b6572" font-size="13">
+                      Apply domain knowledge
+                    </text>
+                  </g>
+                  <g class="m-in" style="--t: 1.35s">
+                    <path
+                      d="M133 392V417"
+                      stroke="#6f7d8c"
+                      stroke-width="1.5"
+                      marker-end="url(#m-arrow)"
+                    />
+                  </g>
+                  <g class="m-in m-box" data-loop="2" style="--t: 1.45s">
+                    <rect x="26" y="420" width="214" height="62" rx="5" />
+                    <text
+                      x="133"
+                      y="446"
+                      text-anchor="middle"
+                      fill="#14263d"
+                      font-size="14.5"
+                      font-weight="700"
+                    >
+                      Benchmark and validate
+                    </text>
+                    <text x="133" y="467" text-anchor="middle" fill="#5b6572" font-size="13">
+                      Check speed and behavior
+                    </text>
+                  </g>
+                  <g class="m-in" style="--t: 1.6s">
+                    <path
+                      id="m-loop-path"
+                      d="M26 451H12V271H23"
+                      fill="none"
+                      stroke="#6f7d8c"
+                      stroke-width="1.5"
+                      marker-end="url(#m-arrow)"
+                    />
+                    <circle
+                      id="m-dot"
+                      class="m-dot"
+                      r="4.5"
+                      cx="12"
+                      cy="451"
+                      fill="#3d5a80"
+                      stroke="#fff"
+                      stroke-width="1.5"
+                    />
+                  </g>
+                  <g class="m-in" style="--t: 2.4s">
+                    <rect
+                      x="12"
+                      y="506"
+                      width="232"
+                      height="82"
+                      rx="6"
+                      fill="#f3f5f7"
+                      stroke="#c3cbd3"
+                      stroke-dasharray="4 4"
+                    />
+                    <text
+                      x="128"
+                      y="535"
+                      text-anchor="middle"
+                      fill="#6b7785"
+                      font-size="13.5"
+                      font-weight="700"
+                    >
+                      Days to weeks per instance;
+                    </text>
+                    <text
+                      x="128"
+                      y="553"
+                      text-anchor="middle"
+                      fill="#6b7785"
+                      font-size="13.5"
+                      font-weight="700"
+                    >
+                      repeated expert effort
+                    </text>
+                    <text
+                      x="128"
+                      y="571"
+                      text-anchor="middle"
+                      fill="#6b7785"
+                      font-size="13.5"
+                      font-weight="700"
+                    >
+                      for each deployment
+                    </text>
+                  </g>
+
+                  <!-- B: coding agent alone (x 268–508) -->
+                  <circle cx="282" cy="24" r="15" fill="#3a6fd0" />
+                  <text
+                    x="282"
+                    y="30"
+                    text-anchor="middle"
+                    fill="#fff"
+                    font-size="16"
+                    font-weight="700"
+                  >
+                    B
+                  </text>
+                  <text x="305" y="30.5" fill="#14263d" font-size="18" font-weight="700">
+                    Coding agent alone
+                  </text>
+                  <g class="m-in" style="--t: 2.2s">
+                    <g fill="none" stroke="#b8692a" stroke-width="2.2">
+                      <line x1="362" y1="49" x2="362" y2="55" />
+                      <circle cx="362" cy="46" r="2.6" />
+                      <rect x="344" y="55" width="36" height="27" rx="8" />
+                      <g class="m-eyes" stroke="none" fill="#b8692a">
+                        <circle cx="354" cy="67" r="2.5" />
+                        <circle cx="370" cy="67" r="2.5" />
+                      </g>
+                      <line x1="355" y1="75" x2="369" y2="75" />
+                      <rect x="351" y="86" width="22" height="14" rx="4" />
+                    </g>
+                    <rect x="392" y="58" width="36" height="34" rx="7" fill="#1e2b45" />
+                    <text x="399" y="81" fill="#fff" font-size="15" font-family="var(--mono)">
+                      &gt;_
+                    </text>
+                  </g>
+                  <g class="m-in" style="--t: 2.5s">
+                    <rect
+                      x="293"
+                      y="114"
+                      width="190"
+                      height="30"
+                      rx="5"
+                      fill="#fdf3e7"
+                      stroke="#e2b98a"
+                    />
+                    <text
+                      x="388"
+                      y="134"
+                      text-anchor="middle"
+                      fill="#b8692a"
+                      font-size="14"
+                      font-weight="700"
+                    >
+                      Prompt + repository
+                    </text>
+                  </g>
+                  <g class="m-in" style="--t: 2.7s">
+                    <path
+                      d="M388 144V160"
+                      stroke="#b8692a"
+                      stroke-width="1.5"
+                      marker-end="url(#m-arrow-o)"
+                    />
+                    <text
+                      x="388"
+                      y="180"
+                      text-anchor="middle"
+                      fill="#b8692a"
+                      font-size="14"
+                      font-weight="700"
+                    >
+                      Generic acceleration,
+                    </text>
+                    <text
+                      x="388"
+                      y="198"
+                      text-anchor="middle"
+                      fill="#b8692a"
+                      font-size="14"
+                      font-weight="700"
+                    >
+                      limited depth
+                    </text>
+                    <path
+                      d="M388 205V221"
+                      stroke="#b8692a"
+                      stroke-width="1.5"
+                      marker-end="url(#m-arrow-o)"
+                    />
+                  </g>
+                  <g class="m-in" style="--t: 2.95s">
+                    <rect
+                      x="293"
+                      y="224"
+                      width="190"
+                      height="64"
+                      rx="6"
+                      fill="#fff"
+                      stroke="#8795a3"
+                    />
+                  </g>
+                  <g class="m-in" style="--t: 3.15s">
+                    <circle cx="310" cy="245" r="9" fill="#e2f2e8" />
+                    <path
+                      d="M306 245l3 3.2l5.5-6.6"
+                      fill="none"
+                      stroke="#1f7a3e"
+                      stroke-width="2.2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                    <text x="326" y="249.5" fill="#14263d" font-size="13">Text-prompt caching</text>
+                  </g>
+                  <g class="m-in" style="--t: 3.4s">
+                    <circle cx="310" cy="268" r="9" fill="#e2f2e8" />
+                    <path
+                      d="M306 268l3 3.2l5.5-6.6"
+                      fill="none"
+                      stroke="#1f7a3e"
+                      stroke-width="2.2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                    <text x="326" y="272.5" fill="#14263d" font-size="13">Replay a CUDA graph</text>
+                  </g>
+                  <g class="m-in" style="--t: 3.75s">
+                    <rect
+                      x="283"
+                      y="300"
+                      width="210"
+                      height="26"
+                      rx="5"
+                      fill="#fff"
+                      stroke="#9aa3ad"
+                      stroke-dasharray="4 3"
+                    />
+                    <text
+                      x="388"
+                      y="318"
+                      text-anchor="middle"
+                      fill="#6b7785"
+                      font-size="12.5"
+                      font-weight="700"
+                    >
+                      … and usually stops here
+                    </text>
+                  </g>
+                  <g class="m-in" style="--t: 4.15s">
+                    <rect
+                      x="276"
+                      y="338"
+                      width="226"
+                      height="148"
+                      rx="6"
+                      fill="#fff"
+                      stroke="#8795a3"
+                    />
+                    <text x="288" y="357" fill="#6b7785" font-size="12" font-style="italic">
+                      without looking at:
+                    </text>
+                  </g>
+                  <g class="m-in" style="--t: 4.35s">
+                    <circle cx="293" cy="384" r="9" fill="#f8dfe0" />
+                    <path
+                      d="M289.5 380.5l7 7M296.5 380.5l-7 7"
+                      stroke="#c4454d"
+                      stroke-width="2.2"
+                      stroke-linecap="round"
+                    />
+                    <text x="308" y="381" fill="#14263d" font-size="12">
+                      actual code path: wrappers,
+                    </text>
+                    <text x="308" y="396" fill="#14263d" font-size="12">
+                      syncs, redundant K-V work
+                    </text>
+                  </g>
+                  <g class="m-in" style="--t: 4.6s">
+                    <circle cx="293" cy="424" r="9" fill="#f8dfe0" />
+                    <path
+                      d="M289.5 420.5l7 7M296.5 420.5l-7 7"
+                      stroke="#c4454d"
+                      stroke-width="2.2"
+                      stroke-linecap="round"
+                    />
+                    <text x="308" y="421" fill="#14263d" font-size="12">
+                      GPU architecture: Hopper vs.
+                    </text>
+                    <text x="308" y="436" fill="#14263d" font-size="12">
+                      Blackwell kernels, FP8 / NVFP4
+                    </text>
+                  </g>
+                  <g class="m-in" style="--t: 4.85s">
+                    <circle cx="293" cy="464" r="9" fill="#f8dfe0" />
+                    <path
+                      d="M289.5 460.5l7 7M296.5 460.5l-7 7"
+                      stroke="#c4454d"
+                      stroke-width="2.2"
+                      stroke-linecap="round"
+                    />
+                    <text x="308" y="461" fill="#14263d" font-size="12">equivalent checks,</text>
+                    <text x="308" y="476" fill="#14263d" font-size="12">
+                      stateful and task checks
+                    </text>
+                  </g>
+                  <g class="m-in" style="--t: 5.25s">
+                    <rect
+                      x="276"
+                      y="498"
+                      width="226"
+                      height="90"
+                      rx="6"
+                      fill="#fdf3e7"
+                      stroke="#e2b98a"
+                      stroke-dasharray="4 4"
+                    />
+                    <text
+                      x="389"
+                      y="522"
+                      text-anchor="middle"
+                      fill="#b8692a"
+                      font-size="13.5"
+                      font-weight="700"
+                    >
+                      Deeper opportunities
+                    </text>
+                    <text
+                      x="389"
+                      y="540"
+                      text-anchor="middle"
+                      fill="#b8692a"
+                      font-size="13.5"
+                      font-weight="700"
+                    >
+                      can remain unexplored;
+                    </text>
+                    <text
+                      x="389"
+                      y="558"
+                      text-anchor="middle"
+                      fill="#b8692a"
+                      font-size="13.5"
+                      font-weight="700"
+                    >
+                      optimization depth
+                    </text>
+                    <text
+                      x="389"
+                      y="576"
+                      text-anchor="middle"
+                      fill="#b8692a"
+                      font-size="13.5"
+                      font-weight="700"
+                    >
+                      varies from run to run
+                    </text>
+                  </g>
+
+                  <!-- C: agent + WAMJET (x 528–956) -->
+                  <circle cx="542" cy="24" r="15" fill="#138a74" />
+                  <text
+                    x="542"
+                    y="30"
+                    text-anchor="middle"
+                    fill="#fff"
+                    font-size="16"
+                    font-weight="700"
+                  >
+                    C
+                  </text>
+                  <text x="565" y="30.5" fill="#0d7a6b" font-size="18" font-weight="700">
+                    Agent + WAMJET
+                  </text>
+                  <text x="532" y="57" fill="#0d7a6b" font-size="13">
+                    Reusable guidance for each WAM and target GPU
+                  </text>
+                  <g class="m-in" style="--t: 5.7s">
+                    <rect
+                      x="532"
+                      y="70"
+                      width="424"
+                      height="466"
+                      rx="10"
+                      fill="#eef7f5"
+                      stroke="#b9ddd6"
+                    />
+                    <text
+                      x="599"
+                      y="98"
+                      text-anchor="middle"
+                      fill="#2f63c6"
+                      font-size="14"
+                      font-weight="700"
+                    >
+                      WAMs
+                    </text>
+                    <text
+                      x="754"
+                      y="98"
+                      text-anchor="middle"
+                      fill="#0f7f6f"
+                      font-size="14"
+                      font-weight="700"
+                    >
+                      GPU architectures
+                    </text>
+                    <text
+                      x="897"
+                      y="98"
+                      text-anchor="middle"
+                      fill="#7b52c7"
+                      font-size="14"
+                      font-weight="700"
+                    >
+                      Coding agents
+                    </text>
+                  </g>
+                  <g class="m-in" style="--t: 6.6s">
+                    <path class="m-link" data-link="w0-g0" d="M654 128L704 146" />
+                    <path class="m-link" data-link="w0-g1" d="M654 128L704 190" />
+                    <path class="m-link" data-link="w1-g0" d="M654 168L704 146" />
+                    <path class="m-link" data-link="w1-g1" d="M654 168L704 190" />
+                    <path class="m-link" data-link="w2-g0" d="M654 208L704 146" />
+                    <path class="m-link" data-link="w2-g1" d="M654 208L704 190" />
+                  </g>
+                  <g class="m-in" style="--t: 6.8s">
+                    <path class="m-link" data-link="g0-a0" d="M804 146L846 128" />
+                    <path class="m-link" data-link="g0-a1" d="M804 146L846 168" />
+                    <path class="m-link" data-link="g0-a2" d="M804 146L846 208" />
+                    <path class="m-link" data-link="g1-a0" d="M804 190L846 128" />
+                    <path class="m-link" data-link="g1-a1" d="M804 190L846 168" />
+                    <path class="m-link" data-link="g1-a2" d="M804 190L846 208" />
+                  </g>
+                  <g class="m-in m-node m-wam" data-w="0" style="--t: 5.9s">
+                    <rect x="544" y="112" width="110" height="32" rx="5" />
+                    <use href="#m-wamdot" x="552" y="120" width="16" height="16" />
+                    <text x="575" y="133" fill="#14263d" font-size="14">FastWAM</text>
+                    <circle cx="654" cy="128" r="3.2" fill="#2f63c6" />
+                  </g>
+                  <g class="m-in m-node m-wam" data-w="1" style="--t: 6s">
+                    <rect x="544" y="152" width="110" height="32" rx="5" />
+                    <use href="#m-wamdot" x="552" y="160" width="16" height="16" />
+                    <text x="575" y="173" fill="#14263d" font-size="14">DreamZero</text>
+                    <circle cx="654" cy="168" r="3.2" fill="#2f63c6" />
+                  </g>
+                  <g class="m-in m-node m-wam" data-w="2" style="--t: 6.1s">
+                    <rect x="544" y="192" width="110" height="32" rx="5" />
+                    <use href="#m-wamdot" x="552" y="200" width="16" height="16" />
+                    <text x="575" y="213" fill="#14263d" font-size="14">OpenWAM</text>
+                    <circle cx="654" cy="208" r="3.2" fill="#2f63c6" />
+                  </g>
+                  <g class="m-in m-node m-gpu" data-g="0" style="--t: 6.25s">
+                    <rect x="704" y="129" width="100" height="34" rx="5" />
+                    <use href="#m-chip" x="714" y="135" width="22" height="22" />
+                    <text x="744" y="151.5" fill="#14263d" font-size="14.5">H100</text>
+                    <circle cx="704" cy="146" r="3.2" fill="#0f7f6f" />
+                    <circle cx="804" cy="146" r="3.2" fill="#0f7f6f" />
+                  </g>
+                  <g class="m-in m-node m-gpu" data-g="1" style="--t: 6.35s">
+                    <rect x="704" y="173" width="100" height="34" rx="5" />
+                    <use href="#m-chip" x="714" y="179" width="22" height="22" />
+                    <text x="744" y="195.5" fill="#14263d" font-size="14.5">B200</text>
+                    <circle cx="704" cy="190" r="3.2" fill="#0f7f6f" />
+                    <circle cx="804" cy="190" r="3.2" fill="#0f7f6f" />
+                  </g>
+                  <g class="m-in m-node m-agent" data-a="0" style="--t: 6.45s">
+                    <rect x="846" y="112" width="102" height="32" rx="5" />
+                    <use href="#m-bot" x="856" y="120" width="16" height="16" />
+                    <text x="879" y="133" fill="#14263d" font-size="14">Sol</text>
+                    <circle cx="846" cy="128" r="3.2" fill="#7b52c7" />
+                  </g>
+                  <g class="m-in m-node m-agent" data-a="1" style="--t: 6.5s">
+                    <rect x="846" y="152" width="102" height="32" rx="5" />
+                    <use href="#m-bot" x="856" y="160" width="16" height="16" />
+                    <text x="879" y="173" fill="#14263d" font-size="14">Astra</text>
+                    <circle cx="846" cy="168" r="3.2" fill="#7b52c7" />
+                  </g>
+                  <g class="m-in m-node m-agent" data-a="2" style="--t: 6.55s">
+                    <rect x="846" y="192" width="102" height="32" rx="5" />
+                    <use href="#m-bot" x="856" y="200" width="16" height="16" />
+                    <text x="879" y="213" fill="#14263d" font-size="14">Opus</text>
+                    <circle cx="846" cy="208" r="3.2" fill="#7b52c7" />
+                  </g>
+                  <g class="m-in" style="--t: 7.1s">
+                    <text
+                      x="744"
+                      y="254"
+                      text-anchor="middle"
+                      fill="#14263d"
+                      font-size="15"
+                      font-weight="700"
+                    >
+                      WAMs × GPU architectures × Coding agents
+                    </text>
+                    <line x1="548" y1="270" x2="940" y2="270" stroke="#c9e3dd" />
+                    <text x="548" y="294" fill="#0d7a6b" font-size="14.5" font-weight="700">
+                      WAMJET optimization guidance + tools
+                    </text>
+                  </g>
+                  <g class="m-in" style="--t: 7.4s">
+                    <rect x="548" y="306" width="3" height="44" fill="#0f7f6f" />
+                    <text x="560" y="319" fill="#14263d" font-size="13.5" font-weight="700">
+                      Faster setup and checkpoint loading
+                    </text>
+                    <text x="560" y="335" fill="#6b7785" font-size="12">
+                      Staged checkpoints and device/meta initialization
+                    </text>
+                    <text x="560" y="349" fill="#6b7785" font-size="12">when applicable</text>
+                  </g>
+                  <g class="m-in" style="--t: 7.65s">
+                    <rect x="548" y="363" width="3" height="44" fill="#0f7f6f" />
+                    <text x="560" y="376" fill="#14263d" font-size="13.5" font-weight="700">
+                      Code analysis and equivalent rewrites
+                    </text>
+                    <text x="560" y="392" fill="#6b7785" font-size="12">
+                      Profile bottlenecks, reuse conditioning,
+                    </text>
+                    <text x="560" y="406" fill="#6b7785" font-size="12">
+                      pack QKV, repair graphs
+                    </text>
+                  </g>
+                  <g class="m-in" style="--t: 7.9s">
+                    <rect x="548" y="420" width="3" height="44" fill="#0f7f6f" />
+                    <text x="560" y="433" fill="#14263d" font-size="13.5" font-weight="700">
+                      Architecture-aware optimization
+                    </text>
+                    <text x="560" y="449" fill="#6b7785" font-size="12">
+                      GPU-specific kernels, memory layouts,
+                    </text>
+                    <text x="560" y="463" fill="#6b7785" font-size="12">
+                      and permitted FP8/NVFP4
+                    </text>
+                  </g>
+                  <g class="m-in" style="--t: 8.15s">
+                    <rect x="548" y="477" width="3" height="44" fill="#0f7f6f" />
+                    <text x="560" y="490" fill="#14263d" font-size="13.5" font-weight="700">
+                      Measure, check, and repeat
+                    </text>
+                    <text x="560" y="506" fill="#6b7785" font-size="12">
+                      Latency, output and state checks,
+                    </text>
+                    <text x="560" y="520" fill="#6b7785" font-size="12">
+                      with task checks for approximations
+                    </text>
+                  </g>
+                  <g class="m-in" style="--t: 8.6s">
+                    <rect
+                      x="532"
+                      y="548"
+                      width="424"
+                      height="40"
+                      rx="5"
+                      fill="#eef7f5"
+                      stroke="#9fd0c6"
+                      stroke-dasharray="4 4"
+                    />
+                    <text
+                      x="744"
+                      y="573"
+                      text-anchor="middle"
+                      fill="#0d7a6b"
+                      font-size="14.5"
+                      font-weight="700"
+                    >
+                      An acceleration stack tailored to the deployment
+                    </text>
+                  </g>
+                </svg>
+              </div>
+              <div class="mot-foot">
+                <p class="scroll-hint">Scroll sideways for all three panels →</p>
+                <div class="mot-buttons">
+                  <button class="btn small" type="button" id="mot-pause" hidden>Pause</button>
+                  <button class="btn small" type="button" id="mot-replay" hidden>Replay</button>
+                </div>
+              </div>
+            </div>
+            <figcaption id="mot-caption">
+              (A) Manual optimization repeats expert effort for every deployment. (B) An agent alone
+              stops at generic acceleration. (C) WAMJET gives the agent guidance and tools tailored
+              to each WAM and target GPU.
+            </figcaption>
+          </figure>
+        </section>
+
+        <section id="workflow" aria-labelledby="workflow-title">
+          <h2 id="workflow-title">A bottleneck-driven loop</h2>
+          <p>
+            The agent first reduces startup cost, then profiles a single inference call and targets
+            the bottleneck. Each candidate is validated, and each accepted change becomes the new
+            baseline. The agent then re-profiles the updated implementation and moves on to the next
+            bottleneck.
+          </p>
+          <ul class="points">
+            <li>
+              <strong>Lossless techniques first</strong>: compilation, fusion, CUDA Graphs, reuse,
+              kernel tuning.
+            </li>
+            <li>
+              <strong>Approximate techniques only when permitted</strong>, such as quantization
+              matched to the GPU.
+            </li>
+            <li>
+              <strong>The loop continues within the available budget</strong>, rather than stopping
+              at the first win.
+            </li>
+          </ul>
+
+          <figure class="wide" id="wf-figure" aria-labelledby="wf-caption">
+            <div class="panel">
+              <div class="scroll-x">
+                <svg
+                  class="wf-svg"
+                  id="wf-svg"
+                  viewBox="-6 10 1012 344"
+                  role="img"
+                  aria-label="WAMJET workflow: 0 fast startup, 1 profile bottlenecks, 2 lossless acceleration, 3 approximate acceleration when permitted, 4 validate and retain. Kept changes loop back to profiling."
+                >
+                  <defs>
+                    <marker
+                      id="wf-arrow"
+                      viewBox="0 0 8 8"
+                      refX="7"
+                      refY="4"
+                      markerWidth="6"
+                      markerHeight="6"
+                      orient="auto-start-reverse"
+                    >
+                      <path d="M0 0L8 4L0 8Z" fill="#a9b0b9" />
+                    </marker>
+                    <marker
+                      id="wf-arrow-loop"
+                      viewBox="0 0 8 8"
+                      refX="7"
+                      refY="4"
+                      markerWidth="6"
+                      markerHeight="6"
+                      orient="auto-start-reverse"
+                    >
+                      <path d="M0 0L8 4L0 8Z" fill="#74b8b0" />
+                    </marker>
+                    <filter id="wf-glow" x="-50%" y="-50%" width="200%" height="200%">
+                      <feGaussianBlur stdDeviation="3" />
+                    </filter>
+                  </defs>
+
+                  <!-- links -->
+                  <path class="wf-link" d="M160,177 H205" marker-end="url(#wf-arrow)" />
+                  <path class="wf-link" d="M370,177 H415" marker-end="url(#wf-arrow)" />
+                  <path class="wf-link dashed" d="M580,177 H625" marker-end="url(#wf-arrow)" />
+                  <path class="wf-link dashed" d="M790,177 H835" marker-end="url(#wf-arrow)" />
+                  <path
+                    class="wf-link dashed"
+                    id="wf-bypass"
+                    d="M500,70 V48 Q500,38 510,38 H910 Q920,38 920,48 V70"
+                    marker-end="url(#wf-arrow)"
+                  />
+                  <text class="wf-note" x="710" y="28" text-anchor="middle">
+                    lossless changes go straight to validation
+                  </text>
+                  <path
+                    class="wf-link loop"
+                    id="wf-loop"
+                    d="M920,284 V308 Q920,318 910,318 H300 Q290,318 290,308 V284"
+                    marker-end="url(#wf-arrow-loop)"
+                  />
+                  <text class="wf-note loop" x="605" y="340" text-anchor="middle">
+                    kept → re-profile from the accepted stack · repeat within the budget
+                  </text>
+                  <path id="wf-t01" d="M160,177 H210" fill="none" stroke="none" />
+                  <path id="wf-t12" d="M370,177 H420" fill="none" stroke="none" />
+                  <path id="wf-t23" d="M580,177 H630" fill="none" stroke="none" />
+                  <path id="wf-t34" d="M790,177 H840" fill="none" stroke="none" />
+
+                  <!-- 0 fast startup -->
+                  <g class="wf-card" data-step="0">
+                    <rect class="card" x="0" y="70" width="160" height="214" rx="12" />
+                    <circle class="badge" cx="20" cy="92" r="11" />
+                    <text class="badge-num" x="20" y="96" text-anchor="middle">0</text>
+                    <text class="title" x="38" y="90">Fast</text>
+                    <text class="title" x="38" y="108">startup</text>
+                    <text class="sub" x="14" y="138">Checkpoint loading</text>
+                    <text class="item" x="14" y="162">Meta-device init</text>
+                    <text class="item" x="14" y="181">Prepared checkpoints</text>
+                    <text class="item" x="14" y="200">Compile caches reused</text>
+                    <text class="tiny" x="14" y="232">Load time</text>
+                    <text class="tiny" x="14" y="252">Before</text>
+                    <rect x="70" y="245" width="54" height="7" rx="2" fill="#c4c7cc" />
+                    <text class="tiny" x="129" y="252">77 s</text>
+                    <text
+                      class="tiny"
+                      x="14"
+                      y="270"
+                      style="fill: var(--teal-ink); font-weight: 600"
+                    >
+                      WAMJET
+                    </text>
+                    <rect x="70" y="263" width="12" height="7" rx="2" fill="#007f79" />
+                    <text
+                      class="tiny"
+                      x="87"
+                      y="270"
+                      style="fill: var(--teal-ink); font-weight: 600"
+                    >
+                      17 s
+                    </text>
+                  </g>
+
+                  <!-- 1 profile -->
+                  <g class="wf-card" data-step="1">
+                    <rect class="card" x="210" y="70" width="160" height="214" rx="12" />
+                    <circle class="badge" cx="230" cy="92" r="11" />
+                    <text class="badge-num" x="230" y="96" text-anchor="middle">1</text>
+                    <text class="title" x="248" y="90">Profile</text>
+                    <text class="title" x="248" y="108">bottlenecks</text>
+                    <text class="sub" x="224" y="138">Latency profile</text>
+                    <text class="tiny" x="224" y="156">per inference call</text>
+                    <text class="item" x="224" y="184">Attention</text>
+                    <rect
+                      class="pbar"
+                      style="--i: 0"
+                      x="294"
+                      y="176"
+                      width="62"
+                      height="9"
+                      rx="2"
+                    />
+                    <text class="item" x="224" y="208">cond. K/V</text>
+                    <rect
+                      class="pbar"
+                      style="--i: 1"
+                      x="294"
+                      y="200"
+                      width="36"
+                      height="9"
+                      rx="2"
+                    />
+                    <text class="item" x="224" y="232">Syncs</text>
+                    <rect
+                      class="pbar"
+                      style="--i: 2"
+                      x="294"
+                      y="224"
+                      width="24"
+                      height="9"
+                      rx="2"
+                    />
+                    <text class="item" x="224" y="256">VAE</text>
+                    <rect
+                      class="pbar"
+                      style="--i: 3"
+                      x="294"
+                      y="248"
+                      width="16"
+                      height="9"
+                      rx="2"
+                    />
+                  </g>
+
+                  <!-- 2 lossless -->
+                  <g class="wf-card" data-step="2">
+                    <rect class="card" x="420" y="70" width="160" height="214" rx="12" />
+                    <circle class="badge" cx="440" cy="92" r="11" />
+                    <text class="badge-num" x="440" y="96" text-anchor="middle">2</text>
+                    <text class="title" x="458" y="90">Lossless</text>
+                    <text class="title" x="458" y="108">acceleration</text>
+                    <text class="sub" x="434" y="138">Compile + kernel fusion</text>
+                    <text class="item" x="434" y="164">Fix graph breaks</text>
+                    <text class="item" x="434" y="184">Drop host sync points</text>
+                    <text class="item" x="434" y="204">Unroll loops, branches</text>
+                    <text class="item" x="434" y="224">Fuse norm &amp; residual</text>
+                    <text class="item" x="434" y="244">CUDA Graphs, pack QKV</text>
+                  </g>
+
+                  <!-- 3 approximate -->
+                  <g class="wf-card" data-step="3">
+                    <rect class="card" x="630" y="70" width="160" height="214" rx="12" />
+                    <circle class="badge" cx="650" cy="92" r="11" />
+                    <text class="badge-num" x="650" y="96" text-anchor="middle">3</text>
+                    <text class="title" x="668" y="90">Approximate</text>
+                    <text class="title" x="668" y="108">acceleration</text>
+                    <text class="sub approx" x="644" y="138">Architecture-aware</text>
+                    <text class="sub approx" x="644" y="154">quantization</text>
+                    <text class="item" x="644" y="184">H100 → FP8</text>
+                    <text class="item" x="644" y="204">B200 → NVFP4 / MXFP8</text>
+                    <rect x="644" y="244" width="104" height="22" rx="11" fill="#fbede4" />
+                    <text
+                      x="696"
+                      y="259"
+                      text-anchor="middle"
+                      style="fill: var(--orange-ink); font-size: 11.5px; font-weight: 500"
+                    >
+                      when permitted
+                    </text>
+                  </g>
+
+                  <!-- 4 validate -->
+                  <g class="wf-card" data-step="4">
+                    <rect class="card" x="840" y="70" width="160" height="214" rx="12" />
+                    <circle class="badge" cx="860" cy="92" r="11" />
+                    <text class="badge-num" x="860" y="96" text-anchor="middle">4</text>
+                    <text class="title" x="878" y="90">Validate</text>
+                    <text class="title" x="878" y="108">&amp; retain</text>
+                    <text class="sub" x="854" y="138">Gates: pass or revert</text>
+                    <path class="chk" style="--i: 0" d="M855,161 l3,3 l6,-7" />
+                    <text class="item" x="870" y="166">Numerical drift ≤ tol.</text>
+                    <path class="chk" style="--i: 1" d="M855,185 l3,3 l6,-7" />
+                    <text class="item" x="870" y="190">State checks</text>
+                    <path class="chk" style="--i: 2" d="M855,209 l3,3 l6,-7" />
+                    <text class="item" x="870" y="214">Paired task evaluation</text>
+                    <path class="chk" style="--i: 3" d="M855,233 l3,3 l6,-7" />
+                    <text class="item" x="870" y="238">Latency output</text>
+                  </g>
+
+                  <g id="wf-token" transform="translate(160 177)">
+                    <circle r="11" fill="#007f79" opacity="0.35" filter="url(#wf-glow)" />
+                    <circle r="6" fill="#007f79" stroke="#fff" stroke-width="2.5" />
+                  </g>
+                </svg>
+              </div>
+              <p class="scroll-hint">Scroll sideways for the full loop →</p>
+
+              <div class="wf-controls" hidden id="wf-controls">
+                <div class="chip-groups">
+                  <div class="chips" role="group" aria-label="H100 lossless runs">
+                    <span class="chip-label">H100 · lossless only</span>
+                    <button class="chip" type="button" data-wf="fastwam" aria-pressed="false">
+                      FastWAM
+                    </button>
+                    <button class="chip" type="button" data-wf="cosmos-policy" aria-pressed="false">
+                      Cosmos-Policy
+                    </button>
+                    <button class="chip" type="button" data-wf="dreamzero" aria-pressed="false">
+                      DreamZero
+                    </button>
+                    <button class="chip" type="button" data-wf="lingbot-va" aria-pressed="true">
+                      LingBot-VA
+                    </button>
+                  </div>
+                  <div
+                    class="chips"
+                    role="group"
+                    aria-label="B200 runs with approximation permitted"
+                  >
+                    <span class="chip-label">B200 · approximation permitted</span>
+                    <button
+                      class="chip"
+                      type="button"
+                      data-wf="dreamzero-b200"
+                      aria-pressed="false"
+                    >
+                      DreamZero
+                    </button>
+                    <button class="chip" type="button" data-wf="openwam-b200" aria-pressed="false">
+                      OpenWAM
+                    </button>
+                  </div>
+                </div>
+                <div class="wf-buttons">
+                  <button class="btn small" type="button" id="wf-play">Play</button>
+                  <button class="btn small" type="button" id="wf-skip">Show all</button>
+                </div>
+              </div>
+              <div class="wf-replay">
+                <div class="readout">
+                  <p class="eyebrow" id="wf-model">LingBot-VA · H100 · GPT-6-astra</p>
+                  <p class="ro-big"><span id="wf-lat">5,323.6</span><small> ms per call</small></p>
+                  <div class="ro-track" aria-hidden="true"><span id="wf-bar"></span></div>
+                  <div class="ro-scale">
+                    <span aria-hidden="true">0 ms</span>
+                    <span class="ro-upstream"
+                      >Upstream: <span id="wf-upstream">5,323.6</span> ms</span
+                    >
+                  </div>
+                  <p class="ro-meta">
+                    <b id="wf-speed">1.00×</b> faster than upstream<br />
+                    <span id="wf-count">0 of 16 changes kept</span> ·
+                    <span id="wf-round">round 1</span>
+                  </p>
+                </div>
+                <div class="wf-logbox">
+                  <div class="log-head" aria-hidden="true">
+                    <span class="log-k">#</span><span class="log-label">Kept change</span
+                    ><span class="log-ms">Latency</span><span class="log-gain">Step gain</span
+                    ><span class="log-total"
+                      ><span class="wide-only">Total speedup</span
+                      ><span class="narrow-only">Total</span></span
+                    >
+                  </div>
+                  <ol class="wf-log" id="wf-log" aria-label="Kept changes"></ol>
+                </div>
+              </div>
+            </div>
+            <figcaption id="wf-caption">
+              <strong>H100:</strong> The replay walks through the lossless optimization. R1 and R2
+              mark the results after one and two WAMJET rounds. As these H100 runs use lossless
+              optimization only, step 3 (approximation) is skipped. <strong>B200:</strong> The
+              replay follows the search progress shown below, covering both lossless and
+              approximate optimizations. <strong>Step gain</strong> compares each row
+              with the previous row. <strong>Total speedup</strong> compares the current row with
+              upstream. Step 0 shows startup cost acceleration.
+            </figcaption>
+          </figure>
+        </section>
+
+        <section id="latency" aria-labelledby="latency-title">
+          <h2 id="latency-title">Where WAM latency hides</h2>
+          <p>
+            WAMJET's guidance helps agents identify where time is spent. Pick a latency source to
+            see a schematic CPU/GPU timeline before and after the optimization, along with the
+            code change behind it.
+          </p>
+          <figure class="wide" aria-label="Latency source explorer">
+            <div class="tabs" role="tablist" aria-label="Latency sources" id="xp-tabs">
+              <button
+                class="tab"
+                type="button"
+                role="tab"
+                id="xp-tab-loading"
+                data-point="loading"
+                aria-selected="false"
+                aria-controls="xp-panel"
+                tabindex="-1"
+              >
+                Checkpoint loading
+              </button>
+              <button
+                class="tab"
+                type="button"
+                role="tab"
+                id="xp-tab-host"
+                data-point="host"
+                aria-selected="true"
+                aria-controls="xp-panel"
+                tabindex="0"
+              >
+                CPU overhead
+              </button>
+              <button
+                class="tab"
+                type="button"
+                role="tab"
+                id="xp-tab-reuse"
+                data-point="reuse"
+                aria-selected="false"
+                aria-controls="xp-panel"
+                tabindex="-1"
+              >
+                Repeated computation
+              </button>
+              <button
+                class="tab"
+                type="button"
+                role="tab"
+                id="xp-tab-compiler"
+                data-point="compiler"
+                aria-selected="false"
+                aria-controls="xp-panel"
+                tabindex="-1"
+              >
+                Compilation barriers
+              </button>
+              <button
+                class="tab"
+                type="button"
+                role="tab"
+                id="xp-tab-sync"
+                data-point="sync"
+                aria-selected="false"
+                aria-controls="xp-panel"
+                tabindex="-1"
+              >
+                CPU-GPU sync/transfer
+              </button>
+              <button
+                class="tab"
+                type="button"
+                role="tab"
+                id="xp-tab-memory"
+                data-point="memory"
+                aria-selected="false"
+                aria-controls="xp-panel"
+                tabindex="-1"
+              >
+                GPU memory traffic
+              </button>
+              <button
+                class="tab"
+                type="button"
+                role="tab"
+                id="xp-tab-serialization"
+                data-point="serialization"
+                aria-selected="false"
+                aria-controls="xp-panel"
+                tabindex="-1"
+              >
+                Unnecessary serialization
+              </button>
+              <button
+                class="tab"
+                type="button"
+                role="tab"
+                id="xp-tab-compute"
+                data-point="compute"
+                aria-selected="false"
+                aria-controls="xp-panel"
+                tabindex="-1"
+              >
+                GPU compute cost
+              </button>
+            </div>
+            <div
+              class="xp-panel"
+              id="xp-panel"
+              role="tabpanel"
+              aria-labelledby="xp-tab-host"
+              tabindex="0"
+            >
+              <div class="xp-head">
+                <div>
+                  <h3 id="xp-title">Reduce launch overhead with CUDA Graphs</h3>
+                  <p id="xp-desc"></p>
+                </div>
+                <span class="tier" id="xp-tier">Lossless</span>
+              </div>
+              <div
+                class="xp-examples"
+                id="xp-examples"
+                role="group"
+                aria-label="Examples"
+                hidden
+              ></div>
+              <div class="xp-body">
+                <div class="xp-diagram">
+                  <p class="xp-label">Schematic CPU/GPU timeline</p>
+                  <div id="xp-pipeline"></div>
+                  <div class="pipe-legend">
+                    <span><i class="sw-cpu"></i>CPU</span>
+                    <span><i class="sw-gpu"></i>GPU compute</span>
+                    <span><i class="sw-move"></i>Data movement</span>
+                    <span><i class="sw-wait"></i>Waiting</span>
+                  </div>
+                  <p class="xp-effect" id="xp-effect"></p>
+                </div>
+                <div class="xp-code">
+                  <p class="xp-label">Python pseudocode</p>
+                  <p class="code-tag">BEFORE</p>
+                  <pre><code id="xp-before"></code></pre>
+                  <p class="code-tag after">AFTER</p>
+                  <pre><code id="xp-after"></code></pre>
+                </div>
+              </div>
+            </div>
+            <figcaption>
+              Timelines are schematic: they show the shape of each fix, not measurements.
+            </figcaption>
+          </figure>
+        </section>
+
+        <section id="lossless" aria-labelledby="lossless-title">
+          <h2 id="lossless-title">Every agent goes further with WAMJET</h2>
+          <p>
+            Our first experiment gives three coding agents the same four WAMs on an H100, with and
+            without WAMJET, and allows only lossless changes. R1 is one round of WAMJET
+            optimization; R2 continues for a second round and is the reported result.
+          </p>
+          <figure class="wide" aria-labelledby="ll-caption">
+            <div class="panel">
+              <div class="legend" aria-hidden="true">
+                <span
+                  ><svg viewBox="0 0 14 14"><use href="assets/icons.svg#i-baseline" /></svg>Without
+                  WAMJET</span
+                >
+                <span
+                  ><svg viewBox="0 0 14 14"><use href="assets/icons.svg#i-round1" /></svg>WAMJET ·
+                  R1</span
+                >
+                <span
+                  ><svg viewBox="0 0 14 14"><use href="assets/icons.svg#i-round2" /></svg>WAMJET ·
+                  R2</span
+                >
+                <span class="note">Speedup vs upstream, log scale; higher is better</span>
+              </div>
+              <div class="facet-grid" id="ll-grid"></div>
+            </div>
+            <figcaption id="ll-caption">
+              Speedup = upstream latency / candidate latency, measured on H100. The upstream line
+              sits at 1×. Hover a dot for its latency.
+            </figcaption>
+            <details class="fold">
+              <summary>Exact latencies per agent and round</summary>
+              <div class="table-wrap" id="ll-table"></div>
+            </details>
+          </figure>
+          <ul class="points">
+            <li>
+              <strong>12 of 12</strong> agent-WAM pairs end faster with WAMJET than the same agent
+              without it.
+            </li>
+            <li><strong>A second round helps in every pair</strong>: R2 beats R1 all 12 times.</li>
+            <li>
+              <strong>The largest gain is 9.95× on LingBot-VA</strong> with GPT-6-astra; the same
+              agent reaches 5.51× without WAMJET.
+            </li>
+          </ul>
+          <p>
+            Each kept change behind the GPT-6-astra results is in the
+            <a href="#workflow">loop replay above</a>.
+          </p>
+        </section>
+
+        <section id="hardware" aria-labelledby="hardware-title">
+          <h2 id="hardware-title">Quantization recipes follow the GPU</h2>
+          <p>
+            When approximation is permitted, the agent applies quantization on top of the lossless
+            optimizations and selects formats natively supported by the GPU. We test DreamZero<a
+              class="cite"
+              href="#ref-1"
+              >[1]</a
+            >
+            and Cosmos3-Nano-Policy-DROID<a class="cite" href="#ref-5">[5]</a> on Hopper (H100) and
+            Blackwell (B200).
+          </p>
+          <figure class="wide" aria-labelledby="hw-caption">
+            <div class="panel">
+              <div class="legend" aria-hidden="true">
+                <span><i class="swatch-upstream"></i>Upstream</span>
+                <span><i class="swatch-lossless"></i>WAMJET lossless</span>
+                <span><i class="swatch-approximate"></i>WAMJET approximate</span>
+                <span class="note">Speedup vs upstream on the same GPU; higher is better</span>
+              </div>
+              <div class="facet-grid" id="hw-grid"></div>
+              <div class="table-wrap recipes">
+                <table class="data">
+                  <thead>
+                    <tr>
+                      <th scope="col">Model</th>
+                      <th scope="col">H100 recipe</th>
+                      <th scope="col">B200 recipe</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <th scope="row">DreamZero</th>
+                      <td>Dynamic FP8</td>
+                      <td>NVFP4 feed-forward projections; dynamic FP8 for the remaining linears</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">Cosmos3-Nano-Policy-DROID</th>
+                      <td>Dynamic FP8</td>
+                      <td>MXFP8 projections with dynamic activation scaling</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <figcaption id="hw-caption">
+              Weights and their scales are prepared once; activation scales are recomputed on every
+              call. GEMMs accumulate in higher precision and return BF16.
+            </figcaption>
+          </figure>
+          <p>
+            Faster must not mean worse. On a RoboLab<a class="cite" href="#ref-6">[6]</a> subset of
+            20 tasks with 10 episodes per task, task performance remains comparable to upstream.
+          </p>
+          <div class="table-wrap">
+            <table class="data">
+              <thead>
+                <tr>
+                  <th scope="col">Configuration</th>
+                  <th scope="col" class="num">DreamZero</th>
+                  <th scope="col" class="num">Cosmos3-Nano-Policy-DROID</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th scope="row">Upstream</th>
+                  <td class="num">25.0%</td>
+                  <td class="num">43.0%</td>
+                </tr>
+                <tr>
+                  <th scope="row">WAMJET lossless</th>
+                  <td class="num">24.0%</td>
+                  <td class="num">47.0%</td>
+                </tr>
+                <tr>
+                  <th scope="row">WAMJET approximate <span class="sub">FP8</span></th>
+                  <td class="num">26.0%</td>
+                  <td class="num">45.5%</td>
+                </tr>
+                <tr>
+                  <th scope="row">WAMJET approximate <span class="sub">Blackwell formats</span></th>
+                  <td class="num">25.0% <span class="sub">NVFP4 + FP8</span></td>
+                  <td class="num">44.5% <span class="sub">MXFP8</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="openwam" aria-labelledby="openwam-title">
+          <h2 id="openwam-title">Room left in an already-optimized SOTA WAM</h2>
+          <p>
+            OpenWAM<a class="cite" href="#ref-7">[7]</a> reports state-of-the-art results on several
+            robot benchmarks and already incorporates several inference optimizations, such as the
+            PyTorch compiler and velocity cache. We let WAMJET-guided GPT-6-astra optimize it on a
+            B200 and evaluate on full LIBERO<a class="cite" href="#ref-8">[8]</a> and full
+            LIBERO-plus<a class="cite" href="#ref-9">[9]</a>.
+          </p>
+          <div class="table-wrap">
+            <table class="data" id="openwam-table">
+              <thead>
+                <tr>
+                  <th scope="col">Configuration</th>
+                  <th scope="col">Latency (lower is better)</th>
+                  <th scope="col" class="num">Speedup</th>
+                  <th scope="col" class="num">LIBERO</th>
+                  <th scope="col" class="num">LIBERO-plus</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th scope="row">Upstream <span class="sub">BF16</span></th>
+                  <td>
+                    <div class="lat-cell">
+                      <div class="lat-bar upstream"><span></span></div>
+                      <span>87.25 ms</span>
+                    </div>
+                  </td>
+                  <td class="num">1.00×</td>
+                  <td class="num">98.95%</td>
+                  <td class="num">69.27%</td>
+                </tr>
+                <tr>
+                  <th scope="row">WAMJET lossless <span class="sub">BF16</span></th>
+                  <td>
+                    <div class="lat-cell">
+                      <div class="lat-bar lossless"><span></span></div>
+                      <span class="best">32.69 ms</span>
+                    </div>
+                  </td>
+                  <td class="num best">2.67×</td>
+                  <td class="num">99.10%</td>
+                  <td class="num">69.24%</td>
+                </tr>
+                <tr>
+                  <th scope="row">WAMJET approximate <span class="sub">FP8</span></th>
+                  <td>
+                    <div class="lat-cell">
+                      <div class="lat-bar approximate"><span></span></div>
+                      <span class="best approx">31.70 ms</span>
+                    </div>
+                  </td>
+                  <td class="num best approx">2.75×</td>
+                  <td class="num">99.25%</td>
+                  <td class="num">69.30%</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="callout">
+            Even in an already highly optimized inference pipeline, the guided agent identifies
+            substantial acceleration opportunities, achieving a 2.67× lossless speedup while
+            preserving action quality.
+          </p>
+        </section>
+
+        <section id="search" aria-labelledby="search-title">
+          <h2 id="search-title">How optimization progresses</h2>
+          <p>
+            Here is how GPT-6-astra achieved its DreamZero and OpenWAM results on a B200. Each dot
+            is a measured trial and the step line is the best configuration kept so far. Gray is the
+            same agent without WAMJET.
+          </p>
+          <div class="legend wide search-legend" aria-hidden="true">
+            <span><i class="swatch-upstream"></i>Upstream (1×)</span>
+            <span><i class="swatch-baseline"></i>Without WAMJET</span>
+            <span><i class="swatch-lossless"></i>WAMJET lossless</span>
+            <span><i class="swatch-approximate"></i>WAMJET approximate</span>
+            <span class="note">Faded dots: trials that were not kept</span>
+          </div>
+
+          <figure
+            class="wide search-fig"
+            data-search-fig="dreamzero"
+            aria-label="DreamZero search progress on B200"
+          >
+            <div class="panel">
+              <div class="search-head">
+                <div>
+                  <p class="eyebrow">GPT-6-astra · B200</p>
+                  <h3>DreamZero</h3>
+                </div>
+                <dl class="search-stats">
+                  <div>
+                    <dt>best kept, with WAMJET</dt>
+                    <dd class="best-value" data-best>2.21×</dd>
+                  </div>
+                  <div>
+                    <dt>without WAMJET</dt>
+                    <dd class="alone-value" data-alone>—</dd>
+                  </div>
+                </dl>
+              </div>
+              <div class="scroll-x"><div class="search-plot"></div></div>
+              <div class="search-controls" hidden>
+                <button class="btn small" type="button" data-play>Play</button>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="any"
+                  value="1"
+                  aria-label="DreamZero search time"
+                />
+                <output></output>
+              </div>
+              <p class="search-ticker" data-ticker></p>
+            </div>
+          </figure>
+
+          <figure
+            class="wide search-fig"
+            data-search-fig="openwam"
+            aria-label="OpenWAM search progress on B200"
+          >
+            <div class="panel">
+              <div class="search-head">
+                <div>
+                  <p class="eyebrow">GPT-6-astra · B200</p>
+                  <h3>OpenWAM</h3>
+                </div>
+                <dl class="search-stats">
+                  <div>
+                    <dt>best kept, with WAMJET</dt>
+                    <dd class="best-value" data-best>2.75×</dd>
+                  </div>
+                  <div>
+                    <dt>without WAMJET</dt>
+                    <dd class="alone-value" data-alone>—</dd>
+                  </div>
+                </dl>
+              </div>
+              <div class="scroll-x"><div class="search-plot"></div></div>
+              <div class="search-controls" hidden>
+                <button class="btn small" type="button" data-play>Play</button>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="any"
+                  value="1"
+                  aria-label="OpenWAM search time"
+                />
+                <output></output>
+              </div>
+              <p class="search-ticker" data-ticker></p>
+            </div>
+          </figure>
+
+          <ul class="points">
+            <li>
+              <strong>Without the harness, the agent stops early</strong>: after 1.38 h on DreamZero
+              (1.11×) and 0.62 h on OpenWAM (1.30×).
+            </li>
+            <li>
+              <strong>With WAMJET it keeps improving for hours</strong>, reaching 2.21× on DreamZero
+              (NVFP4 + FP8) and 2.75× on OpenWAM (FP8).
+            </li>
+            <li>
+              <strong>Shared techniques, different recipes</strong>: both runs use CUDA Graphs and
+              operator fusion, but the final optimization recipes differ between the two models.
+            </li>
+          </ul>
+        </section>
+
+        <section id="try" aria-labelledby="try-title">
+          <h2 id="try-title">Run WAMJET on your own WAM</h2>
+          <p>To use WAMJET with your coding agent, start by installing its tools:</p>
+          <div class="codeblock">
+            <pre><code id="try-install">git clone https://github.com/liulixinkerry/WAMJET.git
+cd WAMJET
+python -m pip install -e '.[numerics]'</code></pre>
+            <button class="btn small copy" type="button" data-copy="try-install">
+              <svg aria-hidden="true"><use href="assets/icons.svg#i-copy" /></svg>Copy
+            </button>
+          </div>
+          <p>
+            Then start your coding agent in the repository and launch a campaign with the
+            example prompts, replacing the placeholders with your paths and campaign ID:
+          </p>
+          <p class="next-links">
+            <a
+              href="https://github.com/liulixinkerry/WAMJET/blob/main/PROMPTS.md"
+              target="_blank"
+              rel="noopener noreferrer"
+              >Lossless and approximate prompts →</a
+            >
+            <a
+              href="https://github.com/liulixinkerry/WAMJET/blob/main/USAGE.md"
+              target="_blank"
+              rel="noopener noreferrer"
+              >Usage guide: workflow, tools, validation →</a
+            >
+          </p>
+        </section>
+
+        <section id="cite" aria-labelledby="cite-title">
+          <h2 id="cite-title">Citation</h2>
+          <div class="bibtex">
+            <pre><code id="bibtex">@article{chen2026wamjet,
+  title={WAMJET: A Harness for World Action Model Acceleration},
+  author={Chen, Le and Liu, Lixin and Schneider, Jan and Qiu, Zeju and Guist, Simon and Sch{\"o}lkopf, Bernhard and B{\"u}chler, Dieter},
+  journal={arXiv preprint arXiv:2610.03797},
+  year={2026}
+}</code></pre>
+            <button class="btn small copy" type="button" data-copy="bibtex">
+              <svg aria-hidden="true"><use href="assets/icons.svg#i-copy" /></svg>Copy
+            </button>
+          </div>
+
+          <h2 id="refs-title">References</h2>
+          <ol class="refs">
+            <li id="ref-1">
+              S. Ye et al. <cite>World action models are zero-shot policies.</cite>
+              <a href="https://arxiv.org/abs/2602.15922">arXiv:2602.15922</a>, 2026.
+            </li>
+            <li id="ref-2">
+              T. Yuan, Z. Dong, Y. Liu, and H. Zhao.
+              <cite>Fast-WAM: Do world action models need test-time future imagination?</cite>
+              <a href="https://arxiv.org/abs/2603.16666">arXiv:2603.16666</a>, 2026.
+            </li>
+            <li id="ref-3">
+              L. Li et al. <cite>Causal world modeling for robot control.</cite>
+              <a href="https://arxiv.org/abs/2601.21998">arXiv:2601.21998</a>, 2026.
+            </li>
+            <li id="ref-4">
+              M. J. Kim et al.
+              <cite
+                >Cosmos Policy: Fine-tuning video models for visuomotor control and planning.</cite
+              >
+              <a href="https://arxiv.org/abs/2601.16163">arXiv:2601.16163</a>, 2026.
+            </li>
+            <li id="ref-5">
+              N. Agarwal et al. <cite>Cosmos 3: Omnimodal world models for physical AI.</cite>
+              <a href="https://arxiv.org/abs/2606.02800">arXiv:2606.02800</a>, 2026.
+            </li>
+            <li id="ref-6">
+              X. Yang et al.
+              <cite
+                >RoboLab: A high-fidelity simulation benchmark for analysis of task generalist
+                policies.</cite
+              >
+              Proceedings of Robotics: Science and Systems, Sydney, Australia, July 2026.
+            </li>
+            <li id="ref-7">
+              Y. Wang et al.
+              <cite
+                >OpenWAM: An open, modular exploration towards systematic world-action model
+                pretraining.</cite
+              >
+              <a href="https://arxiv.org/abs/2609.07398">arXiv:2609.07398</a>, 2026.
+            </li>
+            <li id="ref-8">
+              B. Liu et al.
+              <cite>LIBERO: Benchmarking knowledge transfer for lifelong robot learning.</cite>
+              Advances in Neural Information Processing Systems (NeurIPS), Datasets and Benchmarks
+              Track, 2023.
+            </li>
+            <li id="ref-9">
+              S. Fei et al.
+              <cite
+                >LIBERO-Plus: In-depth Robustness analysis of vision-language-action models.</cite
+              >
+              <a href="https://arxiv.org/abs/2510.13626">arXiv:2510.13626</a>, 2025.
+            </li>
+          </ol>
+        </section>
+      </main>
+    </div>
+
+    <footer class="site">
+      <div class="footer-inner">
+        <span>WAMJET · A Harness for World Action Model Acceleration</span>
+        <nav aria-label="Footer">
+          <a href="https://arxiv.org/abs/2610.03797">Paper</a>
+          <a href="https://github.com/liulixinkerry/WAMJET">Code</a>
+          <a href="#top">Back to top</a>
+        </nav>
+      </div>
+    </footer>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script src="data/measurements.js"></script>
+    <script src="data/explorer.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
