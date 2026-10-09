@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -7,8 +7,7 @@
       name="description"
       content="WAMJET equips coding agents with reusable guidance and tools to accelerate World Action Models: faster inference for every WAM tested across three coding agents and two GPU architectures, including a 9.95× lossless speedup on LingBot-VA."
     />
-    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#111417" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#111417" />
     <script src="theme.js"></script>
     <meta property="og:type" content="article" />
     <meta property="og:title" content="WAMJET: A Harness for World Action Model Acceleration" />
@@ -47,7 +46,7 @@
             class="theme-toggle"
             type="button"
             id="theme-toggle"
-            aria-label="Switch to dark mode"
+            aria-label="Switch to light mode"
             hidden
           >
             <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true">
@@ -84,7 +83,7 @@
           <li><a href="#latency">Where latency hides</a></li>
           <li><a href="#lossless">Lossless speedups</a></li>
           <li><a href="#hardware">Across GPU architectures</a></li>
-          <li><a href="#openwam">An optimized SOTA WAM</a></li>
+          <li><a href="#openwam">Optimized SOTA WAMs</a></li>
           <li><a href="#search">Optimization progress</a></li>
           <li><a href="#try">Try it</a></li>
           <li><a href="#cite">Citation</a></li>
@@ -132,7 +131,7 @@
           <p class="authors">
             <span class="au"><a href="https://clthegoat.github.io/">Le Chen</a><sup>1</sup>,</span>
             <span class="au"
-              ><a href="https://liulixinkerry.github.io/">Lixin Liu</a><sup>2,†</sup>,</span
+              ><a href="https://liulixinkerry.github.io/">Lixin Liu</a><sup>2,✉</sup>,</span
             >
             <span class="au"
               ><a href="https://ei.is.mpg.de/person/jschneider">Jan Schneider</a><sup>1</sup>,</span
@@ -155,20 +154,18 @@
             <span><sup>1</sup>Max Planck Institute for Intelligent Systems</span>
             <span><sup>2</sup>The Chinese University of Hong Kong</span>
             <span><sup>3</sup>Johannes Kepler University Linz</span>
-          </p>
-          <p class="affils corresponding">
-            <span><sup>†</sup>Corresponding author</span>
+            <span class="corresponding"><sup>✉</sup>Corresponding author</span>
           </p>
           <div class="actions">
             <a
-              class="btn dark"
+              class="btn"
               href="https://arxiv.org/abs/2610.03797"
               target="_blank"
               rel="noopener noreferrer"
               ><svg aria-hidden="true"><use href="assets/icons.svg#i-paper" /></svg>Paper</a
             >
             <a
-              class="btn"
+              class="btn dark"
               href="https://github.com/liulixinkerry/WAMJET"
               target="_blank"
               rel="noopener noreferrer"
@@ -200,7 +197,7 @@
             </li>
             <li class="step speedup">
               <span class="step-label">The speedup</span>
-              Across six WAMs, three coding agents, and two GPU architectures, WAMJET speeds up
+              Across seven WAMs, three coding agents, and two GPU architectures, WAMJET speeds up
               every WAM we tested, including a
               <strong>9.95×</strong> lossless speedup on LingBot-VA over its upstream
               implementation. Approximation and hardware-aware optimization yield additional latency
@@ -1283,7 +1280,7 @@
               <div class="wf-controls" hidden id="wf-controls">
                 <div class="chip-groups">
                   <div class="chips" role="group" aria-label="H100 lossless runs">
-                    <span class="chip-label">H100 · lossless only</span>
+                    <span class="chip-label">H100</span>
                     <button class="chip" type="button" data-wf="fastwam" aria-pressed="false">
                       FastWAM
                     </button>
@@ -1297,12 +1294,8 @@
                       LingBot-VA
                     </button>
                   </div>
-                  <div
-                    class="chips"
-                    role="group"
-                    aria-label="B200 runs with approximation permitted"
-                  >
-                    <span class="chip-label">B200 · approximation permitted</span>
+                  <div class="chips" role="group" aria-label="B200 runs">
+                    <span class="chip-label">B200</span>
                     <button
                       class="chip"
                       type="button"
@@ -1314,6 +1307,9 @@
                     <button class="chip" type="button" data-wf="openwam-b200" aria-pressed="false">
                       OpenWAM
                     </button>
+                    <button class="chip" type="button" data-wf="longwam-b200" aria-pressed="false">
+                      Long-WAM
+                    </button>
                   </div>
                 </div>
                 <div class="wf-buttons">
@@ -1322,21 +1318,29 @@
                 </div>
               </div>
               <div class="wf-replay">
-                <div class="readout">
-                  <p class="eyebrow" id="wf-model">LingBot-VA · H100 · GPT-6-astra</p>
-                  <p class="ro-big"><span id="wf-lat">5,323.6</span><small> ms per call</small></p>
-                  <div class="ro-track" aria-hidden="true"><span id="wf-bar"></span></div>
-                  <div class="ro-scale">
-                    <span aria-hidden="true">0 ms</span>
-                    <span class="ro-upstream"
-                      >Upstream: <span id="wf-upstream">5,323.6</span> ms</span
-                    >
+                <div class="wf-summary">
+                  <div class="readout">
+                    <p class="eyebrow" id="wf-model">LingBot-VA · H100 · GPT-6-astra</p>
+                    <p class="ro-big"><span id="wf-lat">5,323.6</span><small> ms per call</small></p>
+                    <div class="ro-track" aria-hidden="true"><span id="wf-bar"></span></div>
+                    <div class="ro-scale">
+                      <span aria-hidden="true">0 ms</span>
+                      <span class="ro-upstream"
+                        >Upstream: <span id="wf-upstream">5,323.6</span> ms</span
+                      >
+                    </div>
+                    <p class="ro-meta">
+                      <b id="wf-speed">1.00×</b> faster than upstream<br />
+                      <span id="wf-count">0 of 16 changes kept</span> ·
+                      <span id="wf-round">round 1</span>
+                    </p>
                   </div>
-                  <p class="ro-meta">
-                    <b id="wf-speed">1.00×</b> faster than upstream<br />
-                    <span id="wf-count">0 of 16 changes kept</span> ·
-                    <span id="wf-round">round 1</span>
-                  </p>
+                  <div class="ro-modes" aria-label="Allowed optimizations">
+                    <span class="ro-mode" id="wf-lossless">Lossless only</span>
+                    <span class="ro-mode approx" id="wf-approximate" hidden>
+                      Approximation allowed
+                    </span>
+                  </div>
                 </div>
                 <div class="wf-logbox">
                   <div class="log-head" aria-hidden="true">
@@ -1352,13 +1356,12 @@
               </div>
             </div>
             <figcaption id="wf-caption">
-              <strong>H100:</strong> The replay walks through the lossless optimization. R1 and R2
-              mark the results after one and two WAMJET rounds. As these H100 runs use lossless
-              optimization only, step 3 (approximation) is skipped. <strong>B200:</strong> The
-              replay follows the search progress shown below, covering both lossless and
-              approximate optimizations. <strong>Step gain</strong> compares each row
-              with the previous row. <strong>Total speedup</strong> compares the current row with
-              upstream. Step 0 shows startup cost acceleration.
+              Round 1 and Round 2 mark the results after one and two WAMJET rounds. For lossless
+              only runs, step 3 (approximation) is skipped. DreamZero on B200 and OpenWAM on B200
+              allow both lossless and approximate optimizations.
+              <strong>Step gain</strong> compares each row with the previous row.
+              <strong>Total speedup</strong> compares the current row with upstream. Step 0 shows
+              the reduction in startup time.
             </figcaption>
           </figure>
         </section>
@@ -1620,16 +1623,20 @@
             </figcaption>
           </figure>
           <p>
-            Faster must not mean worse. On a RoboLab<a class="cite" href="#ref-6">[6]</a> subset of
-            20 tasks with 10 episodes per task, task performance remains comparable to upstream.
+            Faster must not mean worse. We report the success rate on a RoboLab<a
+              class="cite"
+              href="#ref-6"
+              >[6]</a
+            > subset of 20 tasks with 10 episodes per task. Task performance remains comparable
+            to upstream.
           </p>
           <div class="table-wrap">
             <table class="data">
               <thead>
                 <tr>
                   <th scope="col">Configuration</th>
-                  <th scope="col" class="num">DreamZero</th>
-                  <th scope="col" class="num">Cosmos3-Nano-Policy-DROID</th>
+                  <th scope="col" class="num">DreamZero Success Rate</th>
+                  <th scope="col" class="num">Cosmos3-Nano-Policy-DROID Success Rate</th>
                 </tr>
               </thead>
               <tbody>
@@ -1659,12 +1666,14 @@
         </section>
 
         <section id="openwam" aria-labelledby="openwam-title">
-          <h2 id="openwam-title">Room left in an already-optimized SOTA WAM</h2>
+          <h2 id="openwam-title">Room left in already-optimized SOTA WAMs</h2>
+          <h3 class="result-model">OpenWAM</h3>
           <p>
-            OpenWAM<a class="cite" href="#ref-7">[7]</a> reports state-of-the-art results on several
-            robot benchmarks and already incorporates several inference optimizations, such as the
-            PyTorch compiler and velocity cache. We let WAMJET-guided GPT-6-astra optimize it on a
-            B200 and evaluate on full LIBERO<a class="cite" href="#ref-8">[8]</a> and full
+            OpenWAM<a class="cite" href="#ref-7">[7]</a>, released on September 7, 2026, reports
+            state-of-the-art results on several robot benchmarks and already incorporates several
+            inference optimizations, such as the PyTorch compiler and velocity cache. We let
+            WAMJET-guided GPT-6-astra optimize it on a B200 and evaluate on full
+            LIBERO<a class="cite" href="#ref-8">[8]</a> and full
             LIBERO-plus<a class="cite" href="#ref-9">[9]</a>.
           </p>
           <div class="table-wrap">
@@ -1718,19 +1727,60 @@
               </tbody>
             </table>
           </div>
+          <h3 class="result-model" id="longwam-results-title">Long-WAM</h3>
+          <p>
+            Long-WAM<a class="cite" href="#ref-10">[10]</a>, released on October 7, 2026, is another
+            state-of-the-art WAM. It already incorporates NVFP4 quantization, CUDA Graphs,
+            compilation, denoising-invariant reuse, and GEMM/VAE tuning.
+            We use its V4/A4 configuration and let WAMJET-guided GPT-6-astra optimize it on a B200.
+          </p>
+          <div class="table-wrap">
+            <table class="data" id="longwam-table" aria-labelledby="longwam-results-title">
+              <thead>
+                <tr>
+                  <th scope="col">Configuration</th>
+                  <th scope="col">Latency (lower is better)</th>
+                  <th scope="col" class="num">Speedup</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th scope="row">Upstream (V4/A4)</th>
+                  <td>
+                    <div class="lat-cell">
+                      <div class="lat-bar upstream"><span></span></div>
+                      <span>108.92 ms</span>
+                    </div>
+                  </td>
+                  <td class="num">1.00×</td>
+                </tr>
+                <tr>
+                  <th scope="row">WAMJET lossless</th>
+                  <td>
+                    <div class="lat-cell">
+                      <div class="lat-bar lossless"><span></span></div>
+                      <span class="best">43.32 ms</span>
+                    </div>
+                  </td>
+                  <td class="num best">2.51×</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
           <p class="callout">
-            Even in an already highly optimized inference pipeline, the guided agent identifies
-            substantial acceleration opportunities, achieving a 2.67× lossless speedup while
-            preserving action quality.
+            On OpenWAM, the guided agent identifies substantial acceleration opportunities in an
+            already highly optimized inference pipeline, achieving a 2.67× speedup while
+            preserving action quality. On Long-WAM, WAMJET reduces latency from 108.92 ms to
+            43.32 ms, a further 2.51× speedup over the highly optimized upstream implementation.
           </p>
         </section>
 
         <section id="search" aria-labelledby="search-title">
           <h2 id="search-title">How optimization progresses</h2>
           <p>
-            Here is how GPT-6-astra achieved its DreamZero and OpenWAM results on a B200. Each dot
-            is a measured trial and the step line is the best configuration kept so far. Gray is the
-            same agent without WAMJET.
+            Here is how GPT-6-astra achieved its DreamZero, OpenWAM, and Long-WAM results on a
+            B200. Each dot is a measured trial and the step line is the best configuration kept
+            so far. Gray is the same agent without WAMJET.
           </p>
           <div class="legend wide search-legend" aria-hidden="true">
             <span><i class="swatch-upstream"></i>Upstream (1×)</span>
@@ -1818,18 +1868,57 @@
             </div>
           </figure>
 
+          <figure
+            class="wide search-fig"
+            data-search-fig="longwam"
+            aria-label="Long-WAM (V4/A4) search progress on B200"
+          >
+            <div class="panel">
+              <div class="search-head">
+                <div>
+                  <p class="eyebrow">GPT-6-astra · B200</p>
+                  <h3>Long-WAM (V4/A4)</h3>
+                </div>
+                <dl class="search-stats">
+                  <div>
+                    <dt>best kept, with WAMJET</dt>
+                    <dd class="best-value" data-best>2.51×</dd>
+                  </div>
+                  <div>
+                    <dt>without WAMJET</dt>
+                    <dd class="alone-value" data-alone>—</dd>
+                  </div>
+                </dl>
+              </div>
+              <div class="scroll-x"><div class="search-plot"></div></div>
+              <div class="search-controls" hidden>
+                <button class="btn small" type="button" data-play>Play</button>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="any"
+                  value="1"
+                  aria-label="Long-WAM (V4/A4) search time"
+                />
+                <output></output>
+              </div>
+              <p class="search-ticker" data-ticker></p>
+            </div>
+          </figure>
+
           <ul class="points">
             <li>
               <strong>Without the harness, the agent stops early</strong>: after 1.38 h on DreamZero
-              (1.11×) and 0.62 h on OpenWAM (1.30×).
+              (1.11×), 0.62 h on OpenWAM (1.30×), and 2.38 h on Long-WAM (1.72×).
             </li>
             <li>
               <strong>With WAMJET it keeps improving for hours</strong>, reaching 2.21× on DreamZero
-              (NVFP4 + FP8) and 2.75× on OpenWAM (FP8).
+              (NVFP4 + FP8), 2.75× on OpenWAM (FP8), and 2.51× on Long-WAM.
             </li>
             <li>
-              <strong>Shared techniques, different recipes</strong>: both runs use CUDA Graphs and
-              operator fusion, but the final optimization recipes differ between the two models.
+              <strong>Shared techniques, different recipes</strong>: CUDA Graphs and kernel tuning
+              recur across the runs, but the final optimization recipes differ between models.
             </li>
           </ul>
         </section>
@@ -1934,6 +2023,10 @@ python -m pip install -e '.[numerics]'</code></pre>
               >
               <a href="https://arxiv.org/abs/2510.13626">arXiv:2510.13626</a>, 2025.
             </li>
+            <li id="ref-10">
+              W. Huang et al. <cite>Long-WAM: Scaling the Context of World-Action Models.</cite>
+              <a href="https://arxiv.org/abs/2610.10528">arXiv:2610.10528</a>, 2026.
+            </li>
           </ol>
         </section>
       </main>
@@ -1943,8 +2036,8 @@ python -m pip install -e '.[numerics]'</code></pre>
       <div class="footer-inner">
         <span>WAMJET · A Harness for World Action Model Acceleration</span>
         <nav aria-label="Footer">
-          <a href="https://arxiv.org/abs/2610.03797">Paper</a>
           <a href="https://github.com/liulixinkerry/WAMJET">Code</a>
+          <a href="https://arxiv.org/abs/2610.03797">Paper</a>
           <a href="#top">Back to top</a>
         </nav>
       </div>

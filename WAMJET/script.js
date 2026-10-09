@@ -230,6 +230,23 @@
       ow13: 'Decode camera images in parallel and reuse the structural black canvas',
       ow14: 'Combine accepted cache-decision reuse with native cuBLASLt GEMMs using a larger workspace',
     },
+    longwam: {
+      lw1: 'Extend CUDA Graph replay to the video expert and observation VAE',
+      lw2: 'Tune Blackwell GEMM tiles and quantizer warps, and use FlexAttention for video attention',
+      lw3: 'Pack video QKV projections into one GEMM and tune causal attention tiles',
+      lw4: 'Combine packed projections, reusable K/V buffers, constant reuse and equivalent first-frame VAE convolutions',
+      lw5: 'Use FlexAttention for video cross-attention and tune quantization tiles',
+      lw6: 'Skip redundant recursive evaluation-mode assignments',
+      lw7: 'Expand the cuDNN kernel search for the observation VAE',
+      lw8: 'Replace global maximum atomics and resets with partial-maximum reductions',
+      lw9: 'Capture the full inference pipeline in a CUDA Graph with refreshed inputs and seeded noise',
+      lw10: 'Autotune VAE kernels inside full-pipeline CUDA Graph replay',
+      lw11: 'Factor the common reconstruction scale in the existing NVFP4 quantizer without changing its reconstruction candidates',
+      lw12: 'Combine distinct timestep computation, larger causal VAE chunks and factored quantizer scales',
+      lw13: 'Compute exact quantizer statistics from the materialized BF16 inputs',
+      lw14: 'Merge duplicate text rows while preserving their multiplicity in action attention',
+      lw15: 'Flatten exact BF16 quantizer statistics alongside full-pipeline replay, causal VAE batching and duplicate-context aggregation',
+    },
   };
   const ANNOTATIONS = {
     dreamzero: {
@@ -300,16 +317,33 @@
       ow13: { x: 515, y: 100, lines: ['Decode cameras', 'in parallel'] },
       ow14: { x: 887, y: 199, lines: ['Reuse cache decisions;', 'expand GEMM workspace'] },
     },
+    longwam: {
+      lw1: { x: 125, y: 398, inline: true, lines: ['Extend CUDA Graph replay'] },
+      lw2: { x: 180, y: 373, inline: true, lines: ['Tune GEMMs + quantizer'] },
+      lw3: { x: 200, y: 345, inline: true, lines: ['Pack video QKV'] },
+      lw4: { x: 85, y: 214, lines: ['Pack projections;', 'reuse K/V buffers'] },
+      lw5: { x: 175, y: 157, lines: ['Tune cross-attention'] },
+      lw6: { x: 335, y: 296, lines: ['Skip repeated work'] },
+      lw7: { x: 310, y: 100, lines: ['Tune VAE kernels'] },
+      lw8: { x: 535, y: 382, inline: true, lines: ['Use partial-max reductions'] },
+      lw9: { x: 425, y: 140, lines: ['CUDA Graph the', 'full pipeline'] },
+      lw10: { x: 440, y: 60, lines: ['Autotune VAE kernels', 'inside CUDA Graph'] },
+      lw11: { x: 590, y: 102, lines: ['Factor quantizer scales'] },
+      lw12: { x: 580, y: 215, lines: ['Compact timesteps;', 'batch causal VAE work'] },
+      lw13: { x: 745, y: 329, lines: ['Exact quantizer statistics'] },
+      lw14: { x: 760, y: 66, lines: ['Merge duplicate', 'text rows'] },
+      lw15: { x: 885, y: 172, lines: ['Flatten quantizer', 'statistics'] },
+    },
   };
 
   /* ---------- Workflow replay ---------- */
   function initWorkflow() {
     // H100 replays: every kept change from the lossless runs (R1/R2 rounds).
-    // B200 replays: the labeled milestones of the search runs, where approximation was permitted.
     const B200_UPSTREAM_MS = {
       dreamzero: DATA.architecture.find((r) => r.WAM === 'DreamZero' && r.GPU === 'B200')
         .baseline_ms,
       openwam: 87.25, // OpenWAM upstream latency on B200, as in the OpenWAM table
+      longwam: 108.9248,
     };
     const REPLAYS = {};
     Object.entries(DATA.optimizationStages).forEach(([k, m]) => {
@@ -322,14 +356,14 @@
         stages: m.stages,
       };
     });
-    ['dreamzero', 'openwam'].forEach((k) => {
+    ['dreamzero', 'openwam', 'longwam'].forEach((k) => {
       const baseline = B200_UPSTREAM_MS[k];
       REPLAYS[`${k}-b200`] = {
-        name: k === 'dreamzero' ? 'DreamZero' : 'OpenWAM',
+        name: { dreamzero: 'DreamZero', openwam: 'OpenWAM', longwam: 'Long-WAM (V4/A4)' }[k],
         gpu: 'B200',
         baseline_ms: baseline,
-        rounds: false,
-        approximate: true,
+        rounds: k === 'longwam',
+        approximate: k !== 'longwam',
         stages: DATA.search[k].trials
           .filter((t) => t.with_wamjet === '1' && HIGHLIGHTS[k][t.trial_id])
           .sort((a, b) => a.method_search_hours - b.method_search_hours)
@@ -338,6 +372,7 @@
             detail: HIGHLIGHTS[k][t.trial_id],
             latency_ms: baseline / t.speedup,
             approx: t.precision === 'lossy',
+            endpoint: k === 'longwam' ? { lw10: 'R1', lw15: 'R2' }[t.trial_id] : undefined,
           })),
       };
     });
@@ -416,7 +451,7 @@
       $('wf-speed').textContent = `${(m.baseline_ms / latency).toFixed(2)}×`;
       $('wf-bar').style.width = `${(latency / m.baseline_ms) * 100}%`;
       $('wf-count').textContent =
-        `${kept} of ${m.stages.length} ${m.rounds ? 'changes kept' : 'labeled milestones'}`;
+        `${kept} of ${m.stages.length} ${m.gpu === 'H100' ? 'changes kept' : 'labeled milestones'}`;
       $('wf-round').textContent = phase;
     };
     const animateReadout = (from, to, kept, round) => {
@@ -487,6 +522,8 @@
       log.innerHTML = '';
       $('wf-model').textContent = `${m.name} · ${m.gpu} · GPT-6-astra`;
       $('wf-upstream').textContent = fmt(m.baseline_ms, 1);
+      $('wf-lossless').textContent = m.approximate ? 'Lossless allowed' : 'Lossless only';
+      $('wf-approximate').hidden = !m.approximate;
       cards[3].classList.toggle('is-off', !m.approximate);
       setReadout(m.baseline_ms, 0, firstPhase());
       activate(-1);
@@ -913,19 +950,20 @@
     whenVisible(grid, () => tween(1500, draw), 0.3);
   }
 
-  function initOpenWAM() {
-    const table = $('openwam-table');
-    whenVisible(
-      table,
-      () => table.querySelectorAll('.lat-bar').forEach((bar) => bar.classList.add('go')),
-      0.5,
-    );
+  function initLatencyTables() {
+    document.querySelectorAll('#openwam-table, #longwam-table').forEach((table) => {
+      whenVisible(
+        table,
+        () => table.querySelectorAll('.lat-bar').forEach((bar) => bar.classList.add('go')),
+        0.5,
+      );
+    });
   }
 
   /* ---------- Search replay ---------- */
   function initSearch() {
     const SECONDS_PER_HOUR = 2.4;
-    ['dreamzero', 'openwam'].forEach((model) => {
+    ['dreamzero', 'openwam', 'longwam'].forEach((model) => {
       const root = document.querySelector(`[data-search-fig="${model}"]`);
       const plot = root.querySelector('.search-plot'),
         controls = root.querySelector('.search-controls'),
@@ -935,7 +973,7 @@
         ticker = root.querySelector('[data-ticker]'),
         bestEl = root.querySelector('[data-best]'),
         aloneEl = root.querySelector('[data-alone]');
-      const name = model === 'dreamzero' ? 'DreamZero' : 'OpenWAM';
+      const name = root.querySelector('h3').textContent;
       const data = DATA.search[model],
         trials = data.trials,
         duration = Math.max(...trials.map((t) => t.method_search_hours)),
@@ -945,13 +983,16 @@
         width = 972,
         height = 397,
         ymin = 0.9,
-        ymax = model === 'dreamzero' ? 2.6 : 3.2;
+        ymax = { dreamzero: 2.6, openwam: 3.2, longwam: 2.85 }[model];
       const x = (t) => left + (t / xmax) * width,
         y = (v) => top + height - ((v - ymin) / (ymax - ymin)) * height;
       const uid = `sr-${model}`;
       let svg = `<svg viewBox="0 0 1080 493" role="img" aria-label="${name} optimization progress on B200, with technique labels at ${Object.keys(HIGHLIGHTS[model]).length} milestones. Horizontal axis is displayed method search time; vertical axis is speedup versus upstream.">`;
-      const yticks =
-        model === 'dreamzero' ? [1, 1.25, 1.5, 1.75, 2, 2.25, 2.5] : [1, 1.5, 2, 2.5, 3];
+      const yticks = {
+        dreamzero: [1, 1.25, 1.5, 1.75, 2, 2.25, 2.5],
+        openwam: [1, 1.5, 2, 2.5, 3],
+        longwam: [1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 2.75],
+      }[model];
       yticks.forEach((t) => {
         svg += `<line x1="${left}" x2="${left + width}" y1="${y(t)}" y2="${y(t)}" stroke="${t === 1 ? C.upstream : C.grid}" stroke-width="${t === 1 ? 1.5 : 1}"/>`;
         svg += text(
@@ -1121,7 +1162,7 @@
         time = duration,
         last = null;
       const updateButton = () => {
-        playButton.textContent = playing ? 'Pause' : time >= duration ? 'Replay' : 'Play';
+        playButton.textContent = playing ? 'Pause' : time >= duration - 1e-9 ? 'Replay' : 'Play';
       };
       const frame = (now) => {
         if (!playing) return;
@@ -1136,7 +1177,7 @@
         requestAnimationFrame(frame);
       };
       const play = () => {
-        if (time >= duration) time = 0;
+        if (time >= duration - 1e-9) time = 0;
         playing = true;
         last = null;
         updateButton();
@@ -1236,15 +1277,10 @@
       }),
     );
     const toggle = $('theme-toggle');
-    const storedTheme = () => {
-      try {
-        return localStorage.getItem('wamjet-theme');
-      } catch (error) {
-        return null;
-      }
-    };
     const applyTheme = (theme, persist) => {
       document.documentElement.dataset.theme = theme;
+      document.querySelector('meta[name="theme-color"]').content =
+        theme === 'dark' ? '#111417' : '#ffffff';
       toggle.setAttribute(
         'aria-label',
         theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode',
@@ -1259,9 +1295,6 @@
     toggle.addEventListener('click', () =>
       applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark', true),
     );
-    matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (event) => {
-      if (!storedTheme()) applyTheme(event.matches ? 'dark' : 'light', false);
-    });
   }
 
   [
@@ -1271,7 +1304,7 @@
     initExplorer,
     initLossless,
     initHardware,
-    initOpenWAM,
+    initLatencyTables,
     initSearch,
   ].forEach((init) => {
     try {

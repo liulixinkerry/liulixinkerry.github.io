@@ -178,6 +178,34 @@ footer p a:focus {
     color: rgb(219, 18, 18);
 }
 
+.tip {
+    position: relative;
+    cursor: default;
+}
+
+.tip::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: 130%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: #fff;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    line-height: 1.4;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .15s;
+    z-index: 10;
+}
+
+.tip:hover::after {
+    opacity: 1;
+}
+
 @media screen and (max-width: 720px) {
     #Photo {
         float: none;

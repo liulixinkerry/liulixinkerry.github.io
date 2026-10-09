@@ -202,7 +202,7 @@ a:hover {
   top: 104px;
   align-self: start;
   width: 184px;
-  margin-top: 440px;
+  margin-top: 424px;
   font-size: 13px;
   line-height: 1.4;
 }
@@ -327,31 +327,33 @@ h1 {
   display: block;
 }
 .authors {
-  margin: 0 0 4px;
-  font-size: 17px;
-  line-height: 1.7;
+  margin: 0 0 2px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
 }
 .authors .au {
   white-space: nowrap;
 }
 .authors a {
-  color: var(--ink);
+  color: inherit;
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 400;
 }
 .authors a:hover {
+  color: var(--ink);
   text-decoration: underline;
 }
 .authors sup,
 .affils sup {
-  color: var(--teal-ink);
+  color: var(--faint);
   font-size: 0.7em;
   margin-left: 1px;
 }
 .affils {
   margin: 0;
   color: var(--muted);
-  font-size: 17px;
+  font-size: 12.5px;
   line-height: 1.6;
 }
 .affils span {
@@ -363,7 +365,7 @@ h1 {
   flex-wrap: wrap;
   justify-content: center;
   gap: 10px;
-  margin: 22px 0 0;
+  margin: 18px 0 0;
 }
 
 /* Prose */
@@ -372,7 +374,7 @@ section {
 }
 .tagline {
   max-width: 620px;
-  margin: -2px auto 20px;
+  margin: -2px auto 16px;
   color: var(--muted);
   font-size: 19px;
   line-height: 1.5;
@@ -555,6 +557,9 @@ details.fold[open] summary::before {
 .table-wrap {
   overflow-x: auto;
   padding-bottom: 12px;
+}
+.result-model {
+  margin: 24px 0 12px;
 }
 table.data {
   width: 100%;
@@ -917,9 +922,9 @@ table.data .sub {
 }
 .chips .chip-label {
   align-self: center;
-  width: 212px;
+  width: 44px;
   color: var(--muted);
-  font: 500 12px var(--mono);
+  font: 400 13px var(--mono);
 }
 .chip[aria-pressed='true'] {
   background: var(--ink);
@@ -935,12 +940,15 @@ table.data .sub {
   grid-template-columns: 290px minmax(0, 1fr);
   gap: 18px;
 }
+.wf-summary {
+  min-width: 0;
+  align-self: start;
+}
 .readout {
   padding: 18px 18px 16px;
   background: var(--surface);
   border: 1px solid var(--panel-line);
   border-radius: 12px;
-  align-self: start;
 }
 .ro-big {
   margin: 10px 0 10px;
@@ -994,6 +1002,25 @@ table.data .sub {
 .ro-meta b {
   color: var(--teal-ink);
   font-size: 15px;
+}
+.ro-modes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+.ro-mode {
+  padding: 5px 9px;
+  border-radius: 7px;
+  background: var(--teal-soft);
+  color: var(--teal-ink);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+.ro-mode.approx {
+  background: var(--orange-soft);
+  color: var(--orange-ink);
 }
 .wf-logbox {
   background: var(--surface);
@@ -2151,6 +2178,15 @@ footer.site {
 .lat-bar.approximate {
   --w: 36.33%;
   --c: var(--orange);
+}
+#longwam-table .lat-bar.lossless {
+  --w: 39.77%;
+}
+#longwam-table .lat-cell {
+  grid-template-columns: minmax(60px, 1fr) 9ch;
+}
+#longwam-table .lat-cell > span {
+  text-align: right;
 }
 .search-legend {
   margin-bottom: 12px;
